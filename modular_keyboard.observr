@@ -1,0 +1,9 @@
+
+system("./modular_keyboard.rb")
+watch( 'modular_keyboard.rb' )  {|md|
+   system("./modular_keyboard.rb")
+}
+
+watch( 'lib/*/(.*).rb' )  {|md|
+   system("./modular_keyboard.rb")
+}
