@@ -36,58 +36,143 @@ class Keyboard < CrystalScad::Printed
     # complete_unit
 
     # test of full keyboard
-    layout = [
-      [
-        [0.0, 1.0, :esc],
-        [1.0, 1.0, :one],
-        [2.0, 1.0, :two],
-        [3.0, 1.0, :three],
-        [4.0, 1.0, :four],
-        [5.0, 1.0, :five],
-        [6.0, 1.0, :six, { no_right_channel: true }]
-      ],
-      [
-        [0.0, 1.5, :tab],
-        [1.5, 1.0, :q],
-        [2.5, 1.0, :w],
-        [3.5, 1.0, :e],
-        [4.5, 1.0, :r],
-        [5.5, 1.0, :t, { no_right_channel: true }]
-      ],
-      [
-        [0.0, 1.75, :ctrl],
-        [1.75, 1.0, :a],
-        [2.75, 1.0, :s],
-        [3.75, 1.0, :d],
-        [4.75, 1.0, :f],
-        [5.75, 1.0, :g, { no_right_channel: true }],
-      ],
-      [
-        [0.0, 2.25, :shift],
-        [2.25, 1.0, :z],
-        [3.25, 1.0, :x],
-        [4.25, 1.0, :c],
-        [5.25, 1.0, :v],
-        [6.25, 1.0, :b, { no_right_channel: true }],
-      ],
-      [
-        [0.0, 1.0, :fn],
-        [1.0, 1.0, :grave],
-        [2.0, 1.25, :alt], #  alt
-        [3.25, 1.25, :meta],
-        [4.5, 2.75, :space, { no_right_channel: true }], # space
-      ]
+    # layout = [
+    #   [
+    #     [0.0, 1.0, :esc],
+    #     [1.0, 1.0, :one],
+    #     [2.0, 1.0, :two],
+    #     [3.0, 1.0, :three],
+    #     [4.0, 1.0, :four],
+    #     [5.0, 1.0, :five],
+    #     [6.0, 1.0, :six, { no_right_channel: true }]
+    #   ],
+    #   [
+    #     [0.0, 1.5, :tab],
+    #     [1.5, 1.0, :q],
+    #     [2.5, 1.0, :w],
+    #     [3.5, 1.0, :e],
+    #     [4.5, 1.0, :r],
+    #     [5.5, 1.0, :t, { no_right_channel: true }]
+    #   ],
+    #   [
+    #     [0.0, 1.75, :ctrl],
+    #     [1.75, 1.0, :a],
+    #     [2.75, 1.0, :s],
+    #     [3.75, 1.0, :d],
+    #     [4.75, 1.0, :f],
+    #     [5.75, 1.0, :g, { no_right_channel: true }],
+    #   ],
+    #   [
+    #     [0.0, 2.25, :shift],
+    #     [2.25, 1.0, :z],
+    #     [3.25, 1.0, :x],
+    #     [4.25, 1.0, :c],
+    #     [5.25, 1.0, :v],
+    #     [6.25, 1.0, :b, { no_right_channel: true }],
+    #   ],
+    #   [
+    #     [0.0, 1.0, :fn],
+    #     [1.0, 1.0, :grave],
+    #     [2.0, 1.25, :alt], #  alt
+    #     [3.25, 1.25, :meta],
+    #     [4.5, 2.75, :space, { no_right_channel: true }], # space
+    #   ]
+    # ]
+
+  layout = [
+    [
+      [0, 1.0],
+      [1.0, 1.0],
+      [2.0, 1.0],
+      [3.0, 1.0],
+      [4.0, 1.0],
+      [5.0, 1.0],
+      [6.0, 1.0],
+      [7.0, 1.0],
+      [8.0, 1.0],
+      [9.0, 1.0],
+      [10.0, 1.0],
+      [11.0, 1.0],
+      [12.0, 1.0],
+      [13.0, 1.5]
+    ],
+    [
+      [0, 1.5],
+      [1.5, 1.0],
+      [2.5, 1.0],
+      [3.5, 1.0],
+      [4.5, 1.0],
+      [5.5, 1.0],
+      [6.5, 1.0],
+      [7.5, 1.0],
+      [8.5, 1.0],
+      [9.5, 1.0],
+      [10.5, 1.0],
+      [11.5, 1.0],
+      [12.5, 1.0],
+      [13.5, 1.0]
+    ],
+    [
+      [0, 1.75],
+      [1.75, 1.0],
+      [2.75, 1.0],
+      [3.75, 1.0],
+      [4.75, 1.0],
+      [5.75, 1.0],
+      [6.75, 1.0],
+      [7.75, 1.0],
+      [8.75, 1.0],
+      [9.75, 1.0],
+      [10.75, 1.0],
+      [11.75, 1.0],
+      [12.75, 1.75]
+    ],
+    [
+      [0, 2.25],
+      [2.25, 1.0],
+      [3.25, 1.0],
+      [4.25, 1.0],
+      [5.25, 1.0],
+      [6.25, 1.0],
+      [7.25, 1.0],
+      [8.25, 1.0],
+      [9.25, 1.0],
+      [10.25, 1.0],
+      [11.25, 1.25],
+      [12.5, 1.0],
+      [13.5, 1.0]
+    ],
+    [
+      [0, 1.0],
+      [1.0, 1.0],
+      [2.0, 1.25],
+      [3.25, 1.25],
+      [4.5, 2.75],
+      [7.25, 2.0],
+      [9.25, 1.25],
+      [10.5, 1.0],
+      [11.5, 1.0],
+      [12.5, 1.0],
+      [13.5, 1.0]
     ]
+  ]
+
     rows = 5
-    columns = 8
+    columns = 14
     output = nil
+
+    unconnected = {}
 
     columns.times do |column|
       rows.times do |row|
+        unconnected[row] ||= []
         next unless layout[row][column]
+        unconnected[row] << column
         output += complete_unit(width: layout[row][column][1].to_f, options: {no_left_channel: (layout[row][column][3] || {})[:no_left_channel] || (column == 0), no_right_channel: (layout[row][column][3] || {})[:no_right_channel]}).translate(x: (layout[row][column][0]*@unit), y: (-@unit*row), z: 0)
       end
     end
+
+
 
     columns.times do |column|
       puts "column: #{column}"
@@ -96,13 +181,39 @@ class Keyboard < CrystalScad::Printed
         next unless layout[row][column]
 
         adjacent = nil
-        if layout[row+1] && layout[row+1][column]
-          adjacent = layout[row+1][column]
-        elsif layout[row+1] && layout[row+1][column-1]
-          adjacent = layout[row+1][column-1]
+        adj_distance = nil
+        adj_idx = nil
+        # find closest on next row
+        p1 = {
+          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
+          y: (-@unit*row.to_f)-(@unit/2)+@unit
+        }
+        if layout[row+1]
+          layout[row+1].each_with_index do |adj_col, idx|
+            p2 = {
+              x: (adj_col[0]*@unit)+((adj_col[1]*@unit)/2),
+              y: (-@unit*((row+1).to_f))-(@unit/2)+@unit
+            }
+
+            len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
+            if !adj_distance || len < adj_distance
+              adjacent = adj_col
+              adj_distance = len
+              adj_idx = idx
+            end
+
+          end
         end
 
+        # if layout[row+1] && layout[row+1][column]
+        #   adjacent = layout[row+1][column]
+        # elsif layout[row+1] && layout[row+1][column-1]
+        #   adjacent = layout[row+1][column-1]
+        # end
+
         next unless adjacent
+        unconnected[row+1].delete(adj_idx) if unconnected[row+1]
+
         puts "current"
         puts layout[row][column].inspect
         puts "adjacent:"
@@ -129,11 +240,77 @@ class Keyboard < CrystalScad::Printed
         # output += sphere(d: 3, fn: 6).translate(x: p1[:x], y: p1[:y])
         # output += sphere(d: 3, fn: 6).translate(x: p2[:x], y: p2[:y], z: 10)
 
-        len = Math.sqrt( ((p1[:x]-p2[:x]).to_i^2) + ((p1[:y]-p2[:y]).to_i^2) )
+        len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
 
-        output -= cylinder(h: len+@unit, d: wiring_channel_d, fn: 4).rotate(x: -90, z: -angle).translate(x: p1[:x], y: p1[:y])
+        output -= cylinder(h: len, d: wiring_channel_d, fn: 4).rotate(x: -90, z: -angle).translate(x: p1[:x], y: p1[:y])
         #  output += cube(x: 1, y: @unit*3, z: 1).translate(v: [-0.5, 0, -0.5]).rotate(z: -angleDeg).translate(x: p1[:x], y: p1[:y])
 
+      end
+    end
+
+    unconnected.each do |row, cols|
+      next if row == 0
+      cols.each do |column|
+        p1 = {
+          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
+          y: (-@unit*row.to_f)-(@unit/2)+@unit
+        }
+        # puts p1.inspect
+        # output += sphere(d: 5, fn: 6).translate(x: p1[:x], y: p1[:y], z: 10)
+
+        adjacent = nil
+        adj_distance = nil
+        adj_idx = nil
+        # find closest on PREVIOUS row
+
+        if layout[row-1]
+          layout[row-1].each_with_index do |adj_col, idx|
+            p2 = {
+              x: (adj_col[0]*@unit)+((adj_col[1]*@unit)/2),
+              y: (-@unit*((row-1).to_f))-(@unit/2)+@unit
+            }
+
+            len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
+            if !adj_distance || len < adj_distance
+              adjacent = adj_col
+              adj_distance = len
+              adj_idx = idx
+            end
+
+          end
+        end
+
+        next unless adjacent
+
+        puts "current"
+        puts layout[row][column].inspect
+        puts "adjacent:"
+        puts adjacent.inspect
+
+        p1 = {
+          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
+          y: (-@unit*row.to_f)-(@unit/2)+@unit
+        }
+
+        p2 = {
+          x: (adjacent[0]*@unit)+((adjacent[1]*@unit)/2),
+          y: (-@unit*((row+1).to_f))-(@unit/2)+@unit
+        }
+
+        puts "p1: #{p1.inspect}"
+        puts "p2: #{p2.inspect}"
+
+        angle = Math.atan2(p2[:x] - p1[:x], p2[:y] - p1[:y]) * 180 / Math::PI
+
+        puts "angle: #{angle}"
+
+
+        # output += sphere(d: 3, fn: 6).translate(x: p1[:x], y: p1[:y])
+        # output += sphere(d: 3, fn: 6).translate(x: p2[:x], y: p2[:y], z: 10)
+
+        len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
+
+        output -= cylinder(h: len, d: wiring_channel_d, fn: 4).rotate(x: 90, z: angle).translate(x: p1[:x], y: p1[:y])
       end
     end
 
@@ -149,8 +326,10 @@ class Keyboard < CrystalScad::Printed
     end
 
     output += legends.background
-
+    puts unconnected.inspect
     output.translate(v: [0, (rows-1)*@unit, 0])
+
+
   end
 
   def cherry_mx
