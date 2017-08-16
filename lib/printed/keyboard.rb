@@ -22,7 +22,7 @@ class Keyboard < CrystalScad::Printed
 
     @undermount_t = 7.0
 
-    @wiring_channel_d = 4
+    @wiring_channel_d = 6
     @x_wiring_channel_offset = unit/4
     @y_wiring_channel_offset = unit/3
 	end
@@ -35,127 +35,14 @@ class Keyboard < CrystalScad::Printed
     # plate_with_undermount
     # complete_unit
 
-    # test of full keyboard
-    # layout = [
-    #   [
-    #     [0.0, 1.0, :esc],
-    #     [1.0, 1.0, :one],
-    #     [2.0, 1.0, :two],
-    #     [3.0, 1.0, :three],
-    #     [4.0, 1.0, :four],
-    #     [5.0, 1.0, :five],
-    #     [6.0, 1.0, :six, { no_right_channel: true }]
-    #   ],
-    #   [
-    #     [0.0, 1.5, :tab],
-    #     [1.5, 1.0, :q],
-    #     [2.5, 1.0, :w],
-    #     [3.5, 1.0, :e],
-    #     [4.5, 1.0, :r],
-    #     [5.5, 1.0, :t, { no_right_channel: true }]
-    #   ],
-    #   [
-    #     [0.0, 1.75, :ctrl],
-    #     [1.75, 1.0, :a],
-    #     [2.75, 1.0, :s],
-    #     [3.75, 1.0, :d],
-    #     [4.75, 1.0, :f],
-    #     [5.75, 1.0, :g, { no_right_channel: true }],
-    #   ],
-    #   [
-    #     [0.0, 2.25, :shift],
-    #     [2.25, 1.0, :z],
-    #     [3.25, 1.0, :x],
-    #     [4.25, 1.0, :c],
-    #     [5.25, 1.0, :v],
-    #     [6.25, 1.0, :b, { no_right_channel: true }],
-    #   ],
-    #   [
-    #     [0.0, 1.0, :fn],
-    #     [1.0, 1.0, :grave],
-    #     [2.0, 1.25, :alt], #  alt
-    #     [3.25, 1.25, :meta],
-    #     [4.5, 2.75, :space, { no_right_channel: true }], # space
-    #   ]
-    # ]
-
-  layout = [
-    [
-      [0, 1.0],
-      [1.0, 1.0],
-      [2.0, 1.0],
-      [3.0, 1.0],
-      [4.0, 1.0],
-      [5.0, 1.0],
-      [6.0, 1.0],
-      [7.0, 1.0],
-      [8.0, 1.0],
-      [9.0, 1.0],
-      [10.0, 1.0],
-      [11.0, 1.0],
-      [12.0, 1.0],
-      [13.0, 1.5]
-    ],
-    [
-      [0, 1.5],
-      [1.5, 1.0],
-      [2.5, 1.0],
-      [3.5, 1.0],
-      [4.5, 1.0],
-      [5.5, 1.0],
-      [6.5, 1.0],
-      [7.5, 1.0],
-      [8.5, 1.0],
-      [9.5, 1.0],
-      [10.5, 1.0],
-      [11.5, 1.0],
-      [12.5, 1.0],
-      [13.5, 1.0]
-    ],
-    [
-      [0, 1.75],
-      [1.75, 1.0],
-      [2.75, 1.0],
-      [3.75, 1.0],
-      [4.75, 1.0],
-      [5.75, 1.0],
-      [6.75, 1.0],
-      [7.75, 1.0],
-      [8.75, 1.0],
-      [9.75, 1.0],
-      [10.75, 1.0],
-      [11.75, 1.0],
-      [12.75, 1.75]
-    ],
-    [
-      [0, 2.25],
-      [2.25, 1.0],
-      [3.25, 1.0],
-      [4.25, 1.0],
-      [5.25, 1.0],
-      [6.25, 1.0],
-      [7.25, 1.0],
-      [8.25, 1.0],
-      [9.25, 1.0],
-      [10.25, 1.0],
-      [11.25, 1.25],
-      [12.5, 1.0],
-      [13.5, 1.0]
-    ],
-    [
-      [0, 1.0],
-      [1.0, 1.0],
-      [2.0, 1.25],
-      [3.25, 1.25],
-      [4.5, 2.75],
-      [7.25, 2.0],
-      [9.25, 1.25],
-      [10.5, 1.0],
-      [11.5, 1.0],
-      [12.5, 1.0],
-      [13.5, 1.0]
-    ]
-  ]
+    mgr = Layout.new(filename: './recycler_left.json')
+    layout = []
+    mgr.rows.each_with_index do |row, row_index|
+      layout[row_index] = []
+      row.keys.each_with_index do |key, key_index|
+        layout[row_index][key_index] = [key.row_offset, key.width]
+      end
+    end
 
     rows = 5
     columns = 14
@@ -168,7 +55,8 @@ class Keyboard < CrystalScad::Printed
         unconnected[row] ||= []
         next unless layout[row][column]
         unconnected[row] << column
-        output += complete_unit(width: layout[row][column][1].to_f, options: {no_left_channel: (layout[row][column][3] || {})[:no_left_channel] || (column == 0), no_right_channel: (layout[row][column][3] || {})[:no_right_channel]}).translate(x: (layout[row][column][0]*@unit), y: (-@unit*row), z: 0)
+        key = mgr.find_key(row, column)
+        output += complete_unit(width: layout[row][column][1].to_f, options: {no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: (layout[row][column][0]*@unit), y: (-@unit*row), z: 0)
       end
     end
 
