@@ -3,7 +3,7 @@
 ### TODO
 
 Now:
-* Generate slots for Costar-style supports
+* Generate slots for Costar-style stabilizers
 * Ability to render single row
 * Screw holes on bottom
 * Generate bottom plate with screw holes
@@ -17,7 +17,7 @@ Now:
 * Cut-back interior corners (like between sides of keyboard)
 
 Later:
-* Cherry-style supports
+* Cherry-style stabilizers
 * channels for wires and sockets on bottom plate
 * Ability to truncate row left or right at given column
 * "blank space" option to have empty spots be printed
