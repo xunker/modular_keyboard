@@ -39,8 +39,8 @@ class Keyboard < CrystalScad::Printed
     puts "--- Begin at #{Time.now} --- "
     # mgr = Layout.new(filename: './recycler_right.json')
     # mgr = Layout.new(filename: './recycler_left.json')
-    # mgr = Layout.new(filename: './recycler.json')
-    mgr = Layout.new(filename: './stabilizer_test.json')
+    mgr = Layout.new(filename: './recycler.json')
+    # mgr = Layout.new(filename: './stabilizer_test.json')
 
     puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
     puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
@@ -114,7 +114,7 @@ class Keyboard < CrystalScad::Printed
     mgr.keys.each do |key|
       # x_offset = key.x_position(as: :mm, unit_width: @unit)+((key.width*@unit)/4)
       x_offset = (key.x_position(as: :mm, unit_width: @unit)+(key.width*@unit/2))-(@switch_cutout/3)
-      legends += text(text: key.legend, size: 3).translate(x: x_offset, y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: undermount_t)
+      legends += text(text: key.legend.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: undermount_t)
     end
 
     output += legends.background
