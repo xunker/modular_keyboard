@@ -133,11 +133,34 @@ class Layout
       @legends[location]
     end
 
-    def position
-      {
-        x: row_offset,
-        y: row.number
-      }
+    def x_position(as: :units, unit_width: 1)
+      if as == :mm
+        row_offset * unit_width
+      else
+        number
+      end
+    end
+
+    def y_position(as: :units, unit_height: 1)
+      if as == :mm
+        ((row.layout.height-1) - row.number) * unit_height
+      else
+        row.number
+      end
+    end
+
+    def position(as: :units, unit_width: 1, unit_height: 1)
+      if as == :mm
+        {
+          x: x_position(as: :mm, unit_width: unit_width),
+          y: y_position(as: :mm, unit_height: unit_height)
+        }
+      else
+        {
+          x: number,
+          y: row.number
+        }
+      end
     end
 
     # finds the next key nearest in `direction`. Direction can be one of:

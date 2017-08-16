@@ -11,3 +11,7 @@ watch( 'lib/*/(.*).rb' )  {|md|
 watch( '(.*).json' )  {|md|
    system("./modular_keyboard.rb")
 }
+
+watch( 'classes/*/(.*).rb' )  {|md|
+   system("./modular_keyboard.rb")
+}

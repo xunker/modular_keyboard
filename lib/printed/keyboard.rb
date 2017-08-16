@@ -1,3 +1,5 @@
+require "awesome_print"
+
 class Keyboard < CrystalScad::Printed
   skip :output
 
@@ -23,11 +25,102 @@ class Keyboard < CrystalScad::Printed
     @undermount_t = 7.0
 
     @wiring_channel_d = 6
-    @x_wiring_channel_offset = unit/4
+    @x_wiring_channel_offset = unit/3.5
     @y_wiring_channel_offset = unit/3
 	end
 
+  def build_layout
+    puts "--- Begin at #{Time.now} --- "
+    # mgr = Layout.new(filename: './recycler_right.json')
+    mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler.json')
+
+    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
+    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
+    rows = mgr.height
+    columns = mgr.width
+    output = nil
+
+    unconnected = {
+      above: [],
+      below: []
+    }
+
+    connected = {}
+
+    mgr.keys.each do |key|
+      unconnected[:above] << key unless key.row.first?
+      unconnected[:below] << key unless key.row.last?
+      # puts "x: #{key.x_position(as: :mm, unit_width: @unit)}"
+      # puts "y: #{key.y_position(as: :mm, unit_height: @unit)}"
+      output += complete_unit(width: key.width, options: {no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm, unit_width: @unit), y: key.y_position(as: :mm, unit_height: @unit), z: 0)
+    end
+
+    # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
+    # puts "Unconnected below: #{unconnected[:below].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
+    # puts '---'
+
+    mgr.keys.each do |key|
+      adjacent_directions = []
+      if !key.row.last?
+        adjacent_directions << :below
+      end
+      if !key.row.first?
+        adjacent_directions << :above
+      end
+
+      adjacent_directions.each do |adjacent_direction|
+        adjacent = key.nearest_neighbor(adjacent_direction)
+
+        next unless adjacent
+
+        next if connected[key] == adjacent
+        next if connected[adjacent] == key
+
+        connected[key] = adjacent
+        connected[adjacent] = key
+
+        if adjacent_direction == :above
+          unconnected[:above].delete(key)
+          unconnected[:below].delete(adjacent)
+        else
+          unconnected[:above].delete(adjacent)
+          unconnected[:below].delete(key)
+        end
+
+        distance = key.distance_to(adjacent, unit_width: @unit, unit_height: @unit)
+
+        angle = key.angle_to(adjacent)
+
+        # puts "x: #{key.x_position(as: :mm, unit_width: @unit)}"
+        # puts "y: #{key.y_position(as: :mm, unit_height: @unit)}"
+
+        # output += sphere(d: 3, fn: 6).translate(x: key.x_position(as: :mm, unit_width: @unit)+((key.width*@unit)/2), y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: 10).color('blue')
+        #
+        # output += sphere(d: 3, fn: 6).translate(x: adjacent.x_position(as: :mm, unit_width: @unit)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm, unit_height: @unit)+((adjacent.height*@unit)/2), z: 15).color('orange')
+
+        output -= cylinder(h: distance, d: @wiring_channel_d, fn: 4).rotate(x: -90, z: angle).translate(x: adjacent.x_position(as: :mm, unit_width: @unit)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm, unit_height: @unit)+((adjacent.height*@unit)/2))
+      end
+    end
+
+    legends = nil
+    mgr.keys.each do |key|
+      # x_offset = key.x_position(as: :mm, unit_width: @unit)+((key.width*@unit)/4)
+      x_offset = (key.x_position(as: :mm, unit_width: @unit)+(key.width*@unit/2))-(@switch_cutout/3)
+      legends += text(text: key.legend, size: 3).translate(x: x_offset, y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: undermount_t)
+    end
+
+    output += legends.background
+
+    puts '---'
+    puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
+    puts "Unconnected below: #{unconnected[:below].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
+    puts "--- Complete at #{Time.now} --- "
+    output
+  end
+
 	def part(show)
+    return build_layout
     # cherry_mx
     # socket
     # socket_with_switch
@@ -46,8 +139,8 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-    puts "width in units: #{mgr.width(as: :units)}, width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
-    puts "height in units: #{mgr.height(as: :units)}, height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
+    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
+    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
     rows = mgr.height
     columns = mgr.width
     output = nil
@@ -64,7 +157,7 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-
+    # raise mgr.keys[7].position(as: :mm, unit_width: 19.05, unit_height: 19.05).inspect
 
     columns.times do |column|
       puts "column: #{column}"
@@ -219,9 +312,8 @@ class Keyboard < CrystalScad::Printed
 
     output += legends.background
     puts unconnected.inspect
+
     output.translate(v: [0, (rows-1)*@unit, 0])
-
-
   end
 
   def cherry_mx
