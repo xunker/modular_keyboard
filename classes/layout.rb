@@ -71,7 +71,7 @@ class Layout
   end
 
   class Key
-    attr_reader :legends, :settings, :number, :row, :width, :height, :row_offset, :switch_mount, :switch_brand, :switch_type
+    attr_reader :legends, :settings, :number, :row, :width, :height, :row_offset, :additional_offset, :switch_mount, :switch_brand, :switch_type
     def initialize(legends, settings, key_number, parent_row)
       @number = key_number
       @row = parent_row
@@ -93,6 +93,7 @@ class Layout
 
       @width = 1.0
       @height =  1.0
+      @additional_offset = 0.0
 
       parse_settings
       calculate_row_offset
@@ -225,6 +226,8 @@ class Layout
     def parse_settings
       settings.each do |k, v|
         case k
+        when 'x'
+          @additional_offset = v.to_f
         when 'w'
           @width = v.to_f
         when 'sm'
@@ -242,9 +245,9 @@ class Layout
 
     def calculate_row_offset
       @row_offset ||= if number == 0
-        0
+        additional_offset
       else
-        row.keys[number-1].row_offset + row.keys[number-1].width
+        additional_offset + row.keys[number-1].row_offset + row.keys[number-1].width
       end
     end
   end
