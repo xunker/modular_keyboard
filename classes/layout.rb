@@ -2,13 +2,15 @@
 require 'json'
 
 class Layout
-  attr_reader :json, :structure, :rows
+  attr_reader :json, :structure, :rows, :unit_width, :unit_height
   attr_accessor :keys, :stabilizers, :stabilized_width
   def initialize(filename: nil, json: nil, options: {})
     # default options
     options = {
       stabilizers: true,
-      stabilized_width: 2.0
+      stabilized_width: 2.0,
+      unit_width: 19.05, # Cherry MX
+      unit_height: 19.05, # Cherry MX
     }.merge(options)
 
     if [filename.to_s, json.to_s].join.length == 0
@@ -36,6 +38,9 @@ class Layout
     # if @stabilizers is true
     @stabilized_width = options[:stabilized_width].to_f
 
+    @unit_width = options[:unit_width]
+    @unit_height = options[:unit_height]
+
     @keys = []
     load_rows
   end
@@ -48,11 +53,10 @@ class Layout
     rows[row].keys[column]
   end
 
-  # return the width, it can be in :units or :mm. If :mm, unit_width
-  # must be given. If returning width in :mm, any additional offsets
-  # will be included. If returing width in :units, no offset
-  # additional information will be included.
-  def width(as: :units, unit_width: 1.0)
+  # return the width, it can be in :units or :mm. If returning width
+  # in :mm, any additional offsets will be included. If returning
+  # width in :units, no offset additional information will be included.
+  def width(as: :units)
     if as == :mm
       widest_row = rows.max_by{|row| row.keys.last.row_offset + row.keys.last.width}
 
@@ -64,7 +68,7 @@ class Layout
 
   # return the width, it can be in :units or :mm. If :mm, unit_width
   # must be given
-  def height(as: :units, unit_height: 1.0)
+  def height(as: :units)
     max_height = rows.length
     max_height *= unit_height if as == :mm
     max_height
@@ -160,8 +164,15 @@ class Layout
     end
     alias_method :stabilized?, :stabilizers?
 
+    def unit_width
+      layout.unit_width
+    end
 
-    def x_position(as: :units, unit_width: 1)
+    def unit_height
+      layout.unit_height
+    end
+
+    def x_position(as: :units)
       if as == :mm
         row_offset * unit_width
       else
@@ -169,7 +180,7 @@ class Layout
       end
     end
 
-    def y_position(as: :units, unit_height: 1)
+    def y_position(as: :units)
       if as == :mm
         ((row.layout.height-1) - row.number) * unit_height
       else
@@ -177,7 +188,7 @@ class Layout
       end
     end
 
-    def position(as: :units, unit_width: 1, unit_height: 1)
+    def position(as: :units)
       if as == :mm
         {
           x: x_position(as: :mm, unit_width: unit_width),
@@ -261,7 +272,7 @@ class Layout
     end
 
     # Returns the distance to `key` in unit, or MM if size of unit is given
-    def distance_to(key, unit_width: 1.0, unit_height: 1.0)
+    def distance_to(key)
       p1 = {
         x: (row_offset.to_f*unit_width)+((width*unit_width)/2),
         y: (row.number.to_f*unit_height)-((height*unit_height)/2)+(height*unit_height)

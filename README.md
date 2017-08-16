@@ -3,16 +3,14 @@
 ### TODO
 
 Now:
-* Generate slots for Costar-style stabilizers
-* Ability to render single row
 * Screw holes on bottom
-* Generate bottom plate with screw holes
 * Screw holes on top
+* Generate bottom plate with screw holes
 * Generate top partial plate to fit between rows
+* Ability to render single row
 * Add holes for adjustment feet
 * Add openings on top row for wires to exit
 * update Layout::Key#width and #height to also return MM
-* Ability to set :unit_width and :unit_height in Layout#new instead of passing it explicitly to all methods
 * Rounded corners
 * Cut-back interior corners (like between sides of keyboard)
 

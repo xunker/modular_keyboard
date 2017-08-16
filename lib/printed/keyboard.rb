@@ -37,13 +37,13 @@ class Keyboard < CrystalScad::Printed
 
   def build_layout
     puts "--- Begin at #{Time.now} --- "
-    # mgr = Layout.new(filename: './recycler_right.json')
+    mgr = Layout.new(filename: './recycler_right.json')
     # mgr = Layout.new(filename: './recycler_left.json')
-    mgr = Layout.new(filename: './recycler.json')
+    # mgr = Layout.new(filename: './recycler.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
-    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
+    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
+    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
     rows = mgr.height
     columns = mgr.width
     output = nil
@@ -58,9 +58,9 @@ class Keyboard < CrystalScad::Printed
     mgr.keys.each do |key|
       unconnected[:above] << key unless key.row.first?
       unconnected[:below] << key unless key.row.last?
-      # puts "x: #{key.x_position(as: :mm, unit_width: @unit)}"
-      # puts "y: #{key.y_position(as: :mm, unit_height: @unit)}"
-      output += complete_unit(width: key.width, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm, unit_width: @unit), y: key.y_position(as: :mm, unit_height: @unit), z: 0)
+      # puts "x: #{key.x_position(as: :mm)}"
+      # puts "y: #{key.y_position(as: :mm)}"
+      output += complete_unit(width: key.width, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -95,29 +95,50 @@ class Keyboard < CrystalScad::Printed
           unconnected[:below].delete(key)
         end
 
-        distance = key.distance_to(adjacent, unit_width: @unit, unit_height: @unit)
+        distance = key.distance_to(adjacent)
 
         angle = key.angle_to(adjacent)
 
-        # puts "x: #{key.x_position(as: :mm, unit_width: @unit)}"
-        # puts "y: #{key.y_position(as: :mm, unit_height: @unit)}"
+        # puts "x: #{key.x_position(as: :mm)}"
+        # puts "y: #{key.y_position(as: :mm)}"
 
-        # output += sphere(d: 3, fn: 6).translate(x: key.x_position(as: :mm, unit_width: @unit)+((key.width*@unit)/2), y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: 10).color('blue')
+        # output += sphere(d: 3, fn: 6).translate(x: key.x_position(as: :mm)+((key.width*@unit)/2), y: key.y_position(as: :mm)+((key.height*@unit)/2), z: 10).color('blue')
         #
-        # output += sphere(d: 3, fn: 6).translate(x: adjacent.x_position(as: :mm, unit_width: @unit)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm, unit_height: @unit)+((adjacent.height*@unit)/2), z: 15).color('orange')
+        # output += sphere(d: 3, fn: 6).translate(x: adjacent.x_position(as: :mm)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm)+((adjacent.height*@unit)/2), z: 15).color('orange')
 
-        output -= cylinder(h: distance, d: @wiring_channel_d, fn: 4).rotate(x: -90, z: angle).translate(x: adjacent.x_position(as: :mm, unit_width: @unit)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm, unit_height: @unit)+((adjacent.height*@unit)/2))
+        output -= cylinder(h: distance, d: @wiring_channel_d, fn: 4).rotate(x: -90, z: angle).translate(x: adjacent.x_position(as: :mm)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm)+((adjacent.height*@unit)/2))
       end
     end
 
     legends = nil
     mgr.keys.each do |key|
-      # x_offset = key.x_position(as: :mm, unit_width: @unit)+((key.width*@unit)/4)
-      x_offset = (key.x_position(as: :mm, unit_width: @unit)+(key.width*@unit/2))-(@switch_cutout/3)
-      legends += text(text: key.legend.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm, unit_height: @unit)+((key.height*@unit)/2), z: undermount_t)
+      # x_offset = key.x_position(as: :mm)+((key.width*@unit)/4)
+      x_offset = (key.x_position(as: :mm)+(key.width*@unit/2))-(@switch_cutout/3)
+      legends += text(text: key.legend.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height*@unit)/2), z: undermount_t)
     end
 
     output += legends.background
+
+    # bottom screw holes
+    screw_holes = nil
+
+    screw_d = 2
+    screw_h = 3
+    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
+    screw_end_y_spacing = screw_end_x_spacing
+    # screw hole rules:
+    #  screw hole at every outsite corners
+    #  screw hole in Y-middle of each row at each end
+    #  screw hole every 2 units on outside edge of x-plane
+    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
+
+    # corner holes
+    screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: screw_end_x_spacing, y: screw_end_y_spacing, z: -@ff)
+
+    screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: screw_end_x_spacing, y: mgr.rows.first.keys.first.y_position(as: :mm)+@unit-screw_end_y_spacing, z: -@ff)
+
+    output += screw_holes
+
 
     puts '---'
     puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -146,8 +167,8 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
-    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
+    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
+    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
     rows = mgr.height
     columns = mgr.width
     output = nil
@@ -164,7 +185,7 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-    # raise mgr.keys[7].position(as: :mm, unit_width: 19.05, unit_height: 19.05).inspect
+    # raise mgr.keys[7].position(as: :mm).inspect
 
     columns.times do |column|
       puts "column: #{column}"
