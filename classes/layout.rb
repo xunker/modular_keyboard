@@ -3,8 +3,14 @@ require 'json'
 
 class Layout
   attr_reader :json, :structure, :rows
-  attr_accessor :keys
-  def initialize(filename: nil, json: nil)
+  attr_accessor :keys, :stabilizers, :stabilized_width
+  def initialize(filename: nil, json: nil, options: {})
+    # default options
+    options = {
+      stabilizers: true,
+      stabilized_width: 2.0
+    }.merge(options)
+
     if [filename.to_s, json.to_s].join.length == 0
       raise ArgumentError, 'must supply either :filename or :json'
     end
@@ -25,8 +31,17 @@ class Layout
     @structure = JSON.parse(@json)
     # puts @json.inspect
 
+    @stabilizers = options[:stabilizers]
+    # keys this many UNITS or wider will have stabilizers added
+    # if @stabilizers is true
+    @stabilized_width = options[:stabilized_width].to_f
+
     @keys = []
     load_rows
+  end
+
+  def stabilizers?
+    @stabilizers
   end
 
   def find_key(row, column)
@@ -94,6 +109,7 @@ class Layout
 
   class Key
     attr_reader :legends, :settings, :number, :row, :width, :height, :row_offset, :additional_offset, :switch_mount, :switch_brand, :switch_type
+    attr_accessor :stabilizers
     def initialize(legends, settings, key_number, parent_row)
       @number = key_number
       @row = parent_row
@@ -113,11 +129,13 @@ class Layout
         @legends[k] = nil if v == ''
       end
 
-      @width = 1.0
-      @height =  1.0
-      @additional_offset = 0.0
-
       parse_settings
+
+      @width ||= 1.0
+      @height ||=  1.0
+      @additional_offset ||= 0.0
+      @stabilizers ||= layout.stabilizers? && @width >= layout.stabilized_width
+
       calculate_row_offset
     end
 
@@ -132,6 +150,16 @@ class Layout
     def legend(location = :top_left)
       @legends[location]
     end
+
+    def layout
+      row.layout
+    end
+
+    def stabilizers?
+      @stabilizers
+    end
+    alias_method :stabilized?, :stabilizers?
+
 
     def x_position(as: :units, unit_width: 1)
       if as == :mm

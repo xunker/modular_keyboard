@@ -20,6 +20,12 @@ class Keyboard < CrystalScad::Printed
     @unit = 19.05 # cherry mx
     @switch_cutout = 14 # cherry mx
 
+    @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
+    @stabilizer_slot_width = 3.7 # 3.3 (3.5 measured)
+    @stabilizer_slot_height = 14 # 14 (14 measured)
+    @stabilizer_slot_depth = 1.4
+    @stabilizer_y_offset = 0.15 # 0.75 is too far down, rubs
+
     @plate_mount_t = 1.3
 
     @undermount_t = 7.0
@@ -32,8 +38,9 @@ class Keyboard < CrystalScad::Printed
   def build_layout
     puts "--- Begin at #{Time.now} --- "
     # mgr = Layout.new(filename: './recycler_right.json')
-    mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler_left.json')
     # mgr = Layout.new(filename: './recycler.json')
+    mgr = Layout.new(filename: './stabilizer_test.json')
 
     puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
     puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
@@ -53,7 +60,7 @@ class Keyboard < CrystalScad::Printed
       unconnected[:below] << key unless key.row.last?
       # puts "x: #{key.x_position(as: :mm, unit_width: @unit)}"
       # puts "y: #{key.y_position(as: :mm, unit_height: @unit)}"
-      output += complete_unit(width: key.width, options: {no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm, unit_width: @unit), y: key.y_position(as: :mm, unit_height: @unit), z: 0)
+      output += complete_unit(width: key.width, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm, unit_width: @unit), y: key.y_position(as: :mm, unit_height: @unit), z: 0)
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -508,11 +515,29 @@ class Keyboard < CrystalScad::Printed
       obj -= cylinder(d: @wiring_channel_d, h: space_width+(@ff*2), fn: 4).translate(v: [0,0,-@ff]).rotate(x: 0, y: 90, z: 0).translate(v: [0, @x_wiring_channel_offset,0])
     end
 
-    # Y wiring channel
-    # offset
-    # obj -= cylinder(d: @wiring_channel_d, h: @unit+(@ff*2), fn: 18).rotate(x: 270, y: 0, z: 0).translate(v: [@y_wiring_channel_offset,0,0]).translate(v: [0,0,-@ff])
-    # centered
-    # obj -= cylinder(d: @wiring_channel_d, h: @unit+(@ff*2), fn: 18).translate(v: [0,0,-@ff]).rotate(x: 270, y: 0, z: 0).translate(v: [(space_width/2),0,0])
+    if options[:stabilized]
+      stabilizers = nil
+
+      x_center = ((width*@unit)/2)-(@stabilizer_slot_width/2)
+      y_center = (@unit/2)-(@stabilizer_slot_height/2)
+
+      [1, -1].each do |sign|
+        stabilizer = nil
+
+        stabilizer += cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: @stabilizer_slot_depth+ff).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth)
+
+        stabilizer += hull(
+          cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: 0.1).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth),
+          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+1, z: 0.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-0.5, z: -(@stabilizer_slot_depth*2)-1)
+        )
+
+        stabilizers += stabilizer
+      end
+
+      obj -= stabilizers.translate(z: undermount_t)
+    end
+    obj
+
   end
 end
 
