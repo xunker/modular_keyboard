@@ -33,6 +33,28 @@ class Layout
     rows[row].keys[column]
   end
 
+  # return the width, it can be in :units or :mm. If :mm, unit_width
+  # must be given. If returning width in :mm, any additional offsets
+  # will be included. If returing width in :units, no offset
+  # additional information will be included.
+  def width(as: :units, unit_width: 1.0)
+    if as == :mm
+      widest_row = rows.max_by{|row| row.keys.last.row_offset + row.keys.last.width}
+
+      (widest_row.keys.last.row_offset + widest_row.keys.last.width) * unit_width
+    else
+      rows.max_by{|row| row.keys.length}.keys.length
+    end
+  end
+
+  # return the width, it can be in :units or :mm. If :mm, unit_width
+  # must be given
+  def height(as: :units, unit_height: 1.0)
+    max_height = rows.length
+    max_height *= unit_height if as == :mm
+    max_height
+  end
+
   def load_rows
     row_number = -1
     @rows = @structure.map{|row_structure| row_number += 1; Row.new(row_structure, row_number, self)}

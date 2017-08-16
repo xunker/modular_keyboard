@@ -35,7 +35,9 @@ class Keyboard < CrystalScad::Printed
     # plate_with_undermount
     # complete_unit
 
-    mgr = Layout.new(filename: './recycler_left.json')
+    mgr = Layout.new(filename: './recycler_right.json')
+    # mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler.json')
     layout = []
     mgr.rows.each_with_index do |row, row_index|
       layout[row_index] = []
@@ -44,8 +46,10 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-    rows = 5
-    columns = 14
+    puts "width in units: #{mgr.width(as: :units)}, width in mm: #{mgr.width(as: :mm, unit_width: 19.05)}"
+    puts "height in units: #{mgr.height(as: :units)}, height in mm: #{mgr.height(as: :mm, unit_height: 19.05)}"
+    rows = mgr.height
+    columns = mgr.width
     output = nil
 
     unconnected = {}
