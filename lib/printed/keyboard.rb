@@ -35,14 +35,7 @@ class Keyboard < CrystalScad::Printed
     @y_wiring_channel_offset = unit/3
 	end
 
-  def build_layout
-    puts "--- Begin at #{Time.now} --- "
-    # mgr = Layout.new(filename: './recycler_right.json')
-    mgr = Layout.new(filename: './recycler_left.json')
-    # mgr = Layout.new(filename: './recycler_left_2.json')
-    # mgr = Layout.new(filename: './recycler.json')
-    # mgr = Layout.new(filename: './stabilizer_test.json')
-
+  def build_layout(mgr)
     puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
     puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
     rows = mgr.height
@@ -61,7 +54,7 @@ class Keyboard < CrystalScad::Printed
       unconnected[:below] << key unless key.row.last?
       # puts "x: #{key.x_position(as: :mm)}"
       # puts "y: #{key.y_position(as: :mm)}"
-      output += complete_unit(width: key.width, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+      output += complete_unit(key, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -115,7 +108,7 @@ class Keyboard < CrystalScad::Printed
     mgr.keys.each do |key|
       # x_offset = key.x_position(as: :mm)+((key.width*@unit)/4)
       x_offset = (key.x_position(as: :mm)+(key.width*@unit/2))-(@switch_cutout/3)
-      legends += text(text: key.legend.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height*@unit)/2), z: undermount_t)
+      legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height*@unit)/2), z: undermount_t)
     end
 
     output += legends.background
@@ -185,14 +178,98 @@ class Keyboard < CrystalScad::Printed
     output
   end
 
+  def top_connector(mgr, row)
+    output = nil
+
+    upper_switch_cutout = @switch_cutout+2
+    # end_x_spacing = (@unit-@switch_cutout)/2
+    connector_t = 1
+
+    upper_row = mgr.rows[row] unless row<0
+    lower_row = mgr.rows[row+1] if mgr.rows[row+1]
+
+    y_fudge = 0.375
+    connector = nil
+
+    # Generate connector pieces for upper row
+    if upper_row
+      upper_row.keys.each do |key|
+        unit_connector = cube(x: key.width*@unit, y: ((key.height*@unit)/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+
+        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width*@unit-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+
+        connector += unit_connector
+
+        # TODO: stabilizer  cutouts
+        # TODO: screw holes
+      end
+    end
+
+    if lower_row
+      # Generate connector pieces for lower row
+      lower_row.keys.each do |key|
+        unit_connector = cube(x: key.width*@unit, y: ((key.height*@unit)/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height*@unit)/2)+y_fudge, z: 0)
+
+        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width*@unit-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+
+        connector += unit_connector
+
+        # TODO: stabilizer  cutouts
+        # TODO: screw holes
+      end
+    end
+
+    output += connector
+
+    output
+  end
+
 	def part(show)
-    return build_layout
+    puts "--- Begin at #{Time.now} --- "
+    # mgr = Layout.new(filename: './recycler_right.json')
+    mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler_left_2.json')
+    # mgr = Layout.new(filename: './recycler.json')
+    # mgr = Layout.new(filename: './104_ansi.json')
+    # mgr = Layout.new(filename: './104_iso.json')
+    # mgr = Layout.new(filename: './symbolics_364000.json')
+    # mgr = Layout.new(filename: './default_60.json')
+    # mgr = Layout.new(filename: './leopold_fc660m.json')
+    # mgr = Layout.new(filename: './stabilizer_test.json')
+
+    return build_layout(mgr)
+    # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t)
+    # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
+
+
     # cherry_mx
     # socket
     # socket_with_switch
     # plate_unit
     # plate_with_undermount
     # complete_unit
+  end
+
+  def rounded_cube(x:, y:, z:, r: 1.0, fn: 16, options: {})
+    options = {
+      tl: true,
+      tr: true,
+      bl: true,
+      br: true
+    }.merge(options)
+
+    if options.none?{|_k,v| !!v}
+      # no rounding, just use a cube
+      cube(x: x, y: y, z: z)
+    else
+      hull(
+        (options[:bl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: r) : cube(x: r, y: r, z: z)),
+        (options[:br] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: r) : cube(x: r, y: r, z: z).translate(x: x-r)),
+        (options[:tr] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: y-r) : cube(x: r, y: r, z: z).translate(x: x-r, y: y-r)),
+        (options[:tl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: y-r) : cube(x: r, y: r, z: z).translate(y: y-r))
+      )
+    end
   end
 
   def cherry_mx
@@ -333,29 +410,37 @@ class Keyboard < CrystalScad::Printed
   end
 
   # width is multiples of unit
-  def plate_unit(width: 1)
-    space_width = @unit * width
+  def plate_unit(key)
+    space_width = @unit * key.width
 
     # cherry_mx().translate(v: [(unit)/2, (unit)/2, -ff]).translate(v: [-0,0,14.2+0.35]) +
     (
+      # cube(x: space_width, y: @unit, z: @plate_mount_t) -
       cube(x: space_width, y: @unit, z: @plate_mount_t) -
       cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+(@ff*2)).translate(v: [(space_width-@switch_cutout)/2, (@unit-@switch_cutout)/2, -@ff])
     )
   end
 
   # width is multiples of unit
-  def plate_with_undermount(width: 1)
-    space_width = @unit * width
+  def plate_with_undermount(key)
+    space_width = @unit * key.width
     # the inward curve can begin as soon as plate_unit() ends.
 
     # "under pocket" is a space for the clips on the underside of the plate
     under_pocket_d = 1.25
     under_pocket_l = switch_cutout
 
-    plate_unit(width: width).translate(v: [0,0,@undermount_t])
+    plate_unit(key).translate(v: [0,0,@undermount_t])
+
+    options = {tr: false, tl: false, br: false, bl: false}.merge(
+      bl: key.first? && key.row.last?,
+      tl: key.first? && key.row.first?,
+      br: key.last? && key.row.last?,
+      tr: key.last? && key.row.first?,
+    )
 
     (
-      cube(x: space_width, y: @unit, z: @undermount_t) -
+      rounded_cube(x: space_width, y: @unit, z: @undermount_t, options: options) -
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+@ff).translate(v: [0,0,@undermount_t-@plate_mount_t+@ff]),
         # translate offset below should be half of what is substracted from switch_cutout
@@ -373,9 +458,9 @@ class Keyboard < CrystalScad::Printed
   end
 
   # width is multiples of unit
-  def complete_unit(width: 1, options: {})
-    space_width = @unit * width;
-    obj = plate_with_undermount(width: width)
+  def complete_unit(key, options: {})
+    space_width = @unit * key.width;
+    obj = plate_with_undermount(key)
     # X wiring channel
     if options[:no_left_channel]
       obj -= cylinder(d: @wiring_channel_d, h: (space_width/2)+(@ff*2), fn: 4).translate(v: [0,0,(space_width/2)]).rotate(x: 0, y: 90, z: 0).translate(v: [0, @x_wiring_channel_offset,0])
@@ -390,7 +475,7 @@ class Keyboard < CrystalScad::Printed
     if options[:stabilized]
       stabilizers = nil
 
-      x_center = ((width*@unit)/2)-(@stabilizer_slot_width/2)
+      x_center = ((key.width*@unit)/2)-(@stabilizer_slot_width/2)
       y_center = (@unit/2)-(@stabilizer_slot_height/2)
 
       [1, -1].each do |sign|

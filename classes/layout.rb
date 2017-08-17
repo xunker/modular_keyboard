@@ -28,6 +28,7 @@ class Layout
 
       # Fix kle.com's json, add quotes around hash keys
       @json.gsub!(/\{(\w+)\:/, '{"\1": ')
+      @json.gsub!(/\,(\w+)\:/, ',"\1": ')
     end
 
     @structure = JSON.parse(@json)
