@@ -24,7 +24,7 @@ class Keyboard < CrystalScad::Printed
     @stabilizer_slot_width = 3.7 # 3.3 (3.5 measured)
     @stabilizer_slot_height = 14.5 # 14 (14 measured)
     @stabilizer_slot_depth = 1.4
-    @stabilizer_y_offset = 0.15 # 0.75 is too far down, rubs
+    @stabilizer_y_offset = 0.25 # 0.75 is too far down, rubs
 
     @plate_mount_t = 1.3
 
@@ -96,19 +96,19 @@ class Keyboard < CrystalScad::Printed
         # puts "x: #{key.x_position(as: :mm)}"
         # puts "y: #{key.y_position(as: :mm)}"
 
-        # output += sphere(d: 3, fn: 6).translate(x: key.x_position(as: :mm)+((key.width*@unit)/2), y: key.y_position(as: :mm)+((key.height*@unit)/2), z: 10).color('blue')
+        # output += sphere(d: 3, fn: 6).translate(x: key.x_position(as: :mm)+((key.width(as: :mm))/2), y: key.y_position(as: :mm)+((key.height(as: :mm))/2), z: 10).color('blue')
         #
-        # output += sphere(d: 3, fn: 6).translate(x: adjacent.x_position(as: :mm)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm)+((adjacent.height*@unit)/2), z: 15).color('orange')
+        # output += sphere(d: 3, fn: 6).translate(x: adjacent.x_position(as: :mm)+((adjacent.width(as: :mm))/2), y: adjacent.y_position(as: :mm)+((adjacent.height(as: :mm))/2), z: 15).color('orange')
 
-        output -= cylinder(h: distance, d: @wiring_channel_d, fn: 4).rotate(x: -90, z: angle).translate(x: adjacent.x_position(as: :mm)+((adjacent.width*@unit)/2), y: adjacent.y_position(as: :mm)+((adjacent.height*@unit)/2))
+        output -= cylinder(h: distance, d: @wiring_channel_d, fn: 4).rotate(x: -90, z: angle).translate(x: adjacent.x_position(as: :mm)+((adjacent.width(as: :mm))/2), y: adjacent.y_position(as: :mm)+((adjacent.height(as: :mm))/2))
       end
     end
 
     legends = nil
     mgr.keys.each do |key|
-      # x_offset = key.x_position(as: :mm)+((key.width*@unit)/4)
-      x_offset = (key.x_position(as: :mm)+(key.width*@unit/2))-(@switch_cutout/3)
-      legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height*@unit)/2), z: undermount_t)
+      # x_offset = key.x_position(as: :mm)+((key.width(as: :mm))/4)
+      x_offset = (key.x_position(as: :mm)+(key.width(as: :mm)/2))-(@switch_cutout/3)
+      legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height(as: :mm))/2), z: undermount_t)
     end
 
     output += legends.background
@@ -184,6 +184,7 @@ class Keyboard < CrystalScad::Printed
     upper_switch_cutout = @switch_cutout+2
     # end_x_spacing = (@unit-@switch_cutout)/2
     connector_t = 1
+    screw_d = 2
 
     upper_row = mgr.rows[row] unless row<0
     lower_row = mgr.rows[row+1] if mgr.rows[row+1]
@@ -194,29 +195,49 @@ class Keyboard < CrystalScad::Printed
     # Generate connector pieces for upper row
     if upper_row
       upper_row.keys.each do |key|
-        unit_connector = cube(x: key.width*@unit, y: ((key.height*@unit)/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
 
-        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width*@unit-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
         connector += unit_connector
 
         # TODO: stabilizer  cutouts
-        # TODO: screw holes
+
+        # screw holes
+        # TODO: method to return just array of hole coordinates
+        # TODO: make position equidistant from each key
+        # TODO: if width of key at either end is greater than 1 unit, put screw hole around it too
+        # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
+        next if key.first? || key.last?
+
+        connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5), z: -@ff).color('red')
       end
+      key = upper_row.keys.last
+      connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5), z: -@ff).color('red')
     end
 
     if lower_row
       # Generate connector pieces for lower row
       lower_row.keys.each do |key|
-        unit_connector = cube(x: key.width*@unit, y: ((key.height*@unit)/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height*@unit)/2)+y_fudge, z: 0)
+        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height(as: :mm))/2)+y_fudge, z: 0)
 
-        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width*@unit-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
         connector += unit_connector
 
         # TODO: stabilizer  cutouts
-        # TODO: screw holes
+
+        # screw holes
+        # TODO: method to return just array of hole coordinates
+        # TODO: make position equidistant from each key
+        # TODO: if width of key at either end is greater than 1 unit, put screw hole around it too
+        # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
+        next if key.first? || key.last?
+
+        connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5), z: -@ff).color('red')
       end
+      key = lower_row.keys.last
+      connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5), z: -@ff).color('red')
     end
 
     output += connector
@@ -237,9 +258,10 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    return build_layout(mgr)
-    # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t)
-    # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return build_layout(mgr)
+    # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
+    return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
 
 
@@ -475,7 +497,7 @@ class Keyboard < CrystalScad::Printed
     if options[:stabilized]
       stabilizers = nil
 
-      x_center = ((key.width*@unit)/2)-(@stabilizer_slot_width/2)
+      x_center = ((key.width(as: :mm))/2)-(@stabilizer_slot_width/2)
       y_center = (@unit/2)-(@stabilizer_slot_height/2)
 
       [1, -1].each do |sign|

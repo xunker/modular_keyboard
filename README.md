@@ -3,14 +3,12 @@
 ### TODO
 
 Now:
-* Screw holes on bottom
 * Screw holes on top
 * Generate bottom plate with screw holes
 * Generate top partial plate to fit between rows
-* Ability to render single row
+* Ability to render single row (Use intersection!)
 * Add holes for adjustment feet
 * Add openings on top row for wires to exit
-* update Layout::Key#width and #height to also return MM
 * Cut-back interior corners (like between sides of keyboard)
 * different stabilizer pattern for space bar
 

@@ -131,7 +131,7 @@ class Layout
   end
 
   class Key
-    attr_reader :legends, :settings, :number, :row, :width, :height, :row_offset, :additional_offset, :switch_mount, :switch_brand, :switch_type
+    attr_reader :legends, :settings, :number, :row, :row_offset, :additional_offset, :switch_mount, :switch_brand, :switch_type
     attr_accessor :stabilizers
     def initialize(legends, settings, key_number, parent_row)
       @number = key_number
@@ -161,6 +161,23 @@ class Layout
 
       calculate_row_offset
     end
+
+    def width(as: :units)
+      if as == :mm
+        @width * unit_width
+      else
+        @width
+      end
+    end
+
+    def height(as: :units)
+      if as == :mm
+        @height * unit_height
+      else
+        @height
+      end
+    end
+
 
     def first?
       number == 0
@@ -229,7 +246,7 @@ class Layout
     # :edge can be :left or :right
     def x_edge_position(edge)
       x_pos = x_position(as: :mm)
-      x_pos += width*unit_width if edge == :right
+      x_pos += width(as: :mm) if edge == :right
       x_pos
     end
 
@@ -238,7 +255,7 @@ class Layout
     # :edge can be :top or :bottom
     def y_edge_position(edge)
       y_pos = y_position(as: :mm)
-      y_pos += height*unit_width if edge == :top
+      y_pos += height(as: :mm) if edge == :top
       y_pos
     end
 
@@ -322,13 +339,13 @@ class Layout
     # Returns the distance to `key` in unit, or MM if size of unit is given
     def distance_to(key)
       p1 = {
-        x: (row_offset.to_f*unit_width)+((width*unit_width)/2),
-        y: (row.number.to_f*unit_height)-((height*unit_height)/2)+(height*unit_height)
+        x: (row_offset.to_f*unit_width)+((width(as: :mm))/2),
+        y: (row.number.to_f*unit_height)-((height(as: :mm))/2)+(height(as: :mm))
       }
 
       p2 = {
-        x: (key.row_offset.to_f*unit_width)+((key.width*unit_width)/2),
-        y: (key.row.number.to_f*unit_height)-((key.height*unit_height)/2)+(key.height*unit_height)
+        x: (key.row_offset.to_f*unit_width)+((key.width(as: :mm))/2),
+        y: (key.row.number.to_f*unit_height)-((key.height(as: :mm))/2)+(key.height(as: :mm))
       }
 
       Math.sqrt( ((p1[:x]-p2[:x])**2) + ((p1[:y]-p2[:y])**2) ).round(2)
