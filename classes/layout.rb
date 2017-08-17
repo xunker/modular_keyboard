@@ -110,6 +110,24 @@ class Layout
     def last?
       number == layout.rows.length-1
     end
+
+    def width(as: :units)
+      if as == :mm
+        keys.last.x_edge_position(:right)
+      else
+        keys.length
+      end
+    end
+
+    # returns the row after this one, if present, else nil
+    def next
+      layout.rows[number+1] unless last?
+    end
+
+    # returns the row before this one, if present, else nil
+    def previous
+      layout.rows[number-1] unless first?
+    end
   end
 
   class Key

@@ -226,8 +226,8 @@ class Keyboard < CrystalScad::Printed
 
 	def part(show)
     puts "--- Begin at #{Time.now} --- "
-    # mgr = Layout.new(filename: './recycler_right.json')
-    mgr = Layout.new(filename: './recycler_left.json')
+    mgr = Layout.new(filename: './recycler_right.json')
+    # mgr = Layout.new(filename: './recycler_left.json')
     # mgr = Layout.new(filename: './recycler_left_2.json')
     # mgr = Layout.new(filename: './recycler.json')
     # mgr = Layout.new(filename: './104_ansi.json')
@@ -433,10 +433,10 @@ class Keyboard < CrystalScad::Printed
     plate_unit(key).translate(v: [0,0,@undermount_t])
 
     options = {tr: false, tl: false, br: false, bl: false}.merge(
-      bl: key.first? && key.row.last?,
-      tl: key.first? && key.row.first?,
-      br: key.last? && key.row.last?,
-      tr: key.last? && key.row.first?,
+      bl: (key.first? && key.row.last?) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      tl: (key.first? && key.row.first?) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      br: (key.last? && key.row.last?) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
+      tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm))),
     )
 
     (
