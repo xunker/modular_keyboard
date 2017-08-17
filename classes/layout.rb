@@ -172,6 +172,7 @@ class Layout
       layout.unit_height
     end
 
+    # Returns position of left (x-plane) of key unit
     def x_position(as: :units)
       if as == :mm
         row_offset * unit_width
@@ -180,6 +181,7 @@ class Layout
       end
     end
 
+    # Returns position of bottom (y-plane) of key unit
     def y_position(as: :units)
       if as == :mm
         ((row.layout.height-1) - row.number) * unit_height
@@ -188,6 +190,7 @@ class Layout
       end
     end
 
+    # Returns position of bottom-left corner of key unit
     def position(as: :units)
       if as == :mm
         {
@@ -200,6 +203,32 @@ class Layout
           y: row.number
         }
       end
+    end
+
+    # Returns the position of the edge of the key unit along the
+    # X-Plane, IN MM.
+    # :edge can be :left or :right
+    def x_edge_position(edge)
+      x_pos = x_position(as: :mm)
+      x_pos += width*unit_width if edge == :right
+      x_pos
+    end
+
+    # Returns the position of the edge of the key unit along the
+    # Y-Plane, IN MM.
+    # :edge can be :top or :bottom
+    def y_edge_position(edge)
+      y_pos = y_position(as: :mm)
+      y_pos += height*unit_width if edge == :top
+      y_pos
+    end
+
+    # Returns the position of the corner of the key unit IN MM.
+    # `x` can be :left or :right
+    # `y` can be :top or :bottom
+    # returns hash of two float values, x and y
+    def corner_position(x, y)
+      { x: x_edge_position(x), y: y_edge_position(y) }
     end
 
     # finds the next key nearest in `direction`. Direction can be one of:

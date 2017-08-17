@@ -22,7 +22,7 @@ class Keyboard < CrystalScad::Printed
 
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
     @stabilizer_slot_width = 3.7 # 3.3 (3.5 measured)
-    @stabilizer_slot_height = 14 # 14 (14 measured)
+    @stabilizer_slot_height = 14.5 # 14 (14 measured)
     @stabilizer_slot_depth = 1.4
     @stabilizer_y_offset = 0.15 # 0.75 is too far down, rubs
 
@@ -37,8 +37,9 @@ class Keyboard < CrystalScad::Printed
 
   def build_layout
     puts "--- Begin at #{Time.now} --- "
-    mgr = Layout.new(filename: './recycler_right.json')
-    # mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler_right.json')
+    mgr = Layout.new(filename: './recycler_left.json')
+    # mgr = Layout.new(filename: './recycler_left_2.json')
     # mgr = Layout.new(filename: './recycler.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
@@ -124,20 +125,57 @@ class Keyboard < CrystalScad::Printed
 
     screw_d = 2
     screw_h = 3
-    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
-    screw_end_y_spacing = screw_end_x_spacing
+
     # screw hole rules:
-    #  screw hole at every outsite corners
-    #  screw hole in Y-middle of each row at each end
-    #  screw hole every 2 units on outside edge of x-plane
-    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
 
     # corner holes
-    screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: screw_end_x_spacing, y: screw_end_y_spacing, z: -@ff)
+    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
+    screw_end_y_spacing = screw_end_x_spacing
+    [
+      [mgr.rows.first.keys.first, :top, :left, screw_end_x_spacing, -screw_end_y_spacing],
+      [mgr.rows.first.keys.last, :top, :right, -screw_end_x_spacing, -screw_end_y_spacing],
+      [mgr.rows.last.keys.first, :bottom, :left, screw_end_x_spacing, screw_end_y_spacing],
+      [mgr.rows.last.keys.last, :bottom, :right, -screw_end_x_spacing, screw_end_y_spacing]
+    ].each do |key, y, x, x_offset, y_offset|
+      corner_pos = key.corner_position(x, y)
+      screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: corner_pos[:x]+x_offset, y: corner_pos[:y]+y_offset, z: -@ff)
+    end
 
-    screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: screw_end_x_spacing, y: mgr.rows.first.keys.first.y_position(as: :mm)+@unit-screw_end_y_spacing, z: -@ff)
+    # row-end screw holes
+    # screw hole in Y-middle of each row at each end
+    mgr.rows[1..-2].each do |row|
+      [:left, :right].each do |direction|
+        corner_pos = row.keys.send(direction == :left ? :first : :last).corner_position(direction, :bottom)
+        screw_holes += cylinder(d: screw_d, h: screw_h).color('blue').translate(x: corner_pos[:x]+(direction == :left ? +screw_end_x_spacing : -screw_end_x_spacing), y: corner_pos[:y]+@unit/2, z: -@ff)
+      end
+    end
 
-    output += screw_holes
+    # column-end screw holes
+    # screw hole every 2 units between keys on each column
+    mgr.rows.first.keys[1..-1].each_with_index do |key, idx|
+      next unless idx.odd?
+      corner_pos = key.corner_position(:left, :top)
+      screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]-screw_end_y_spacing, z: -@ff).color('green')
+    end
+    mgr.rows.last.keys[1..-1].each_with_index do |key, idx|
+      next unless idx.odd?
+      corner_pos = key.corner_position(:left, :bottom)
+      screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]+screw_end_y_spacing, z: -@ff).color('green')
+    end
+
+    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
+
+    mgr.rows[1..-2].each_with_index do |row, row_index|
+      # next unless row_index.even?
+      row.keys[1..-1].each_with_index do |key, key_index|
+        next unless key_index.odd?
+        corner_pos = key.corner_position(:left, :bottom)
+        screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]+(@unit/2), z: -@ff).color('purple')
+      end
+    end
+
+    # output += screw_holes.scale(v: [1.0, 1.0, 3.0])
+    output -= screw_holes
 
 
     puts '---'
@@ -155,193 +193,6 @@ class Keyboard < CrystalScad::Printed
     # plate_unit
     # plate_with_undermount
     # complete_unit
-
-    mgr = Layout.new(filename: './recycler_right.json')
-    # mgr = Layout.new(filename: './recycler_left.json')
-    # mgr = Layout.new(filename: './recycler.json')
-    layout = []
-    mgr.rows.each_with_index do |row, row_index|
-      layout[row_index] = []
-      row.keys.each_with_index do |key, key_index|
-        layout[row_index][key_index] = [key.row_offset, key.width]
-      end
-    end
-
-    puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
-    puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
-    rows = mgr.height
-    columns = mgr.width
-    output = nil
-
-    unconnected = {}
-
-    columns.times do |column|
-      rows.times do |row|
-        unconnected[row] ||= []
-        next unless layout[row][column]
-        unconnected[row] << column
-        key = mgr.find_key(row, column)
-        output += complete_unit(width: layout[row][column][1].to_f, options: {no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: (layout[row][column][0]*@unit), y: (-@unit*row), z: 0)
-      end
-    end
-
-    # raise mgr.keys[7].position(as: :mm).inspect
-
-    columns.times do |column|
-      puts "column: #{column}"
-      rows.times do |row|
-        puts "row: #{row}"
-        next unless layout[row][column]
-
-        adjacent = nil
-        adj_distance = nil
-        adj_idx = nil
-        # find closest on next row
-        p1 = {
-          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
-          y: (-@unit*row.to_f)-(@unit/2)+@unit
-        }
-        if layout[row+1]
-          layout[row+1].each_with_index do |adj_col, idx|
-            p2 = {
-              x: (adj_col[0]*@unit)+((adj_col[1]*@unit)/2),
-              y: (-@unit*((row+1).to_f))-(@unit/2)+@unit
-            }
-
-            len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
-            if !adj_distance || len < adj_distance
-              adjacent = adj_col
-              adj_distance = len
-              adj_idx = idx
-            end
-
-          end
-        end
-
-        # if layout[row+1] && layout[row+1][column]
-        #   adjacent = layout[row+1][column]
-        # elsif layout[row+1] && layout[row+1][column-1]
-        #   adjacent = layout[row+1][column-1]
-        # end
-
-        next unless adjacent
-        unconnected[row+1].delete(adj_idx) if unconnected[row+1]
-
-        puts "current"
-        puts layout[row][column].inspect
-        puts "adjacent:"
-        puts adjacent.inspect
-
-        p1 = {
-          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
-          y: (-@unit*row.to_f)-(@unit/2)+@unit
-        }
-
-        p2 = {
-          x: (adjacent[0]*@unit)+((adjacent[1]*@unit)/2),
-          y: (-@unit*((row+1).to_f))-(@unit/2)+@unit
-        }
-
-        puts "p1: #{p1.inspect}"
-        puts "p2: #{p2.inspect}"
-
-        angle = Math.atan2(p2[:x] - p1[:x], p2[:y] - p1[:y]) * 180 / Math::PI
-
-        puts "angle: #{angle}"
-
-
-        # output += sphere(d: 3, fn: 6).translate(x: p1[:x], y: p1[:y])
-        # output += sphere(d: 3, fn: 6).translate(x: p2[:x], y: p2[:y], z: 10)
-
-        len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
-
-        output -= cylinder(h: len, d: wiring_channel_d, fn: 4).rotate(x: -90, z: -angle).translate(x: p1[:x], y: p1[:y])
-        #  output += cube(x: 1, y: @unit*3, z: 1).translate(v: [-0.5, 0, -0.5]).rotate(z: -angleDeg).translate(x: p1[:x], y: p1[:y])
-
-      end
-    end
-
-    unconnected.each do |row, cols|
-      next if row == 0
-      cols.each do |column|
-        p1 = {
-          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
-          y: (-@unit*row.to_f)-(@unit/2)+@unit
-        }
-        # puts p1.inspect
-        # output += sphere(d: 5, fn: 6).translate(x: p1[:x], y: p1[:y], z: 10)
-
-        adjacent = nil
-        adj_distance = nil
-        adj_idx = nil
-        # find closest on PREVIOUS row
-
-        if layout[row-1]
-          layout[row-1].each_with_index do |adj_col, idx|
-            p2 = {
-              x: (adj_col[0]*@unit)+((adj_col[1]*@unit)/2),
-              y: (-@unit*((row-1).to_f))-(@unit/2)+@unit
-            }
-
-            len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
-            if !adj_distance || len < adj_distance
-              adjacent = adj_col
-              adj_distance = len
-              adj_idx = idx
-            end
-
-          end
-        end
-
-        next unless adjacent
-
-        puts "current"
-        puts layout[row][column].inspect
-        puts "adjacent:"
-        puts adjacent.inspect
-
-        p1 = {
-          x: (layout[row][column][0]*@unit)+((layout[row][column][1]*@unit)/2),
-          y: (-@unit*row.to_f)-(@unit/2)+@unit
-        }
-
-        p2 = {
-          x: (adjacent[0]*@unit)+((adjacent[1]*@unit)/2),
-          y: (-@unit*((row+1).to_f))-(@unit/2)+@unit
-        }
-
-        puts "p1: #{p1.inspect}"
-        puts "p2: #{p2.inspect}"
-
-        angle = Math.atan2(p2[:x] - p1[:x], p2[:y] - p1[:y]) * 180 / Math::PI
-
-        puts "angle: #{angle}"
-
-
-        # output += sphere(d: 3, fn: 6).translate(x: p1[:x], y: p1[:y])
-        # output += sphere(d: 3, fn: 6).translate(x: p2[:x], y: p2[:y], z: 10)
-
-        len = Math.sqrt( ((p1[:x]-p2[:x]).to_i**2) + ((p1[:y]-p2[:y]).to_i**2) )
-
-        output -= cylinder(h: len, d: wiring_channel_d, fn: 4).rotate(x: 90, z: angle).translate(x: p1[:x], y: p1[:y])
-      end
-    end
-
-    legends = nil
-    columns.times do |column|
-      # puts "column: #{column}"
-      rows.times do |row|
-        # puts "row: #{row}"
-        next unless layout[row][column]
-
-        legends += text(text: layout[row][column][2], size: 5).translate(x: (layout[row][column][0]*@unit)+layout[row][column][1]*(@unit/2)-(@switch_cutout/3), y: (-@unit*row)+(@unit/4), z: undermount_t)
-      end
-    end
-
-    output += legends.background
-    puts unconnected.inspect
-
-    output.translate(v: [0, (rows-1)*@unit, 0])
   end
 
   def cherry_mx
@@ -548,8 +399,8 @@ class Keyboard < CrystalScad::Printed
         stabilizer += cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: @stabilizer_slot_depth+ff).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth)
 
         stabilizer += hull(
-          cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: 0.1).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth),
-          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+1, z: 0.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-0.5, z: -(@stabilizer_slot_depth*2)-1)
+          cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: 0.1).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth/2),
+          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+2, z: 0.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-1.0, z: -(@stabilizer_slot_depth)-1)
         )
 
         stabilizers += stabilizer
