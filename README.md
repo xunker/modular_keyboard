@@ -11,6 +11,7 @@ Now:
 * Add openings on top row for wires to exit
 * Cut-back interior corners (like between sides of keyboard)
 * different stabilizer pattern for space bar
+* round corners of top connector
 
 Later:
 * Cherry-style stabilizers

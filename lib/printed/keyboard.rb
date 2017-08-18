@@ -23,7 +23,7 @@ class Keyboard < CrystalScad::Printed
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
     @stabilizer_slot_width = 3.7 # 3.3 (3.5 measured)
     @stabilizer_slot_height = 14.5 # 14 (14 measured)
-    @stabilizer_slot_depth = 1.4
+    @stabilizer_slot_depth = 1.2
     @stabilizer_y_offset = 0.25 # 0.75 is too far down, rubs
 
     @plate_mount_t = 1.3
@@ -277,9 +277,10 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    # return build_layout(mgr)
+    # return plate_with_undermount(mgr.keys.first)
+    return build_layout(mgr)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
-    return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
 
@@ -469,7 +470,7 @@ class Keyboard < CrystalScad::Printed
 
     # "under pocket" is a space for the clips on the underside of the plate
     under_pocket_d = 1.25
-    under_pocket_l = switch_cutout
+    under_pocket_l = switch_cutout*0.9
 
     plate_unit(key).translate(v: [0,0,@undermount_t])
 
@@ -485,13 +486,13 @@ class Keyboard < CrystalScad::Printed
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+@ff).translate(v: [0,0,@undermount_t-@plate_mount_t+@ff]),
         # translate offset below should be half of what is substracted from switch_cutout
-        cube(x: @switch_cutout-2.5, y: @switch_cutout-0, z: @plate_mount_t).translate(v: [1.25,0.0,0])
+        cube(x: @switch_cutout-1.5, y: @switch_cutout-0, z: @plate_mount_t).translate(v: [0.75,0.0,0])
       ).translate(v: [(space_width-@switch_cutout)/2, (@unit-@switch_cutout)/2, -@ff]) -
 
       (
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-@switch_cutout)/2, (@unit-@switch_cutout)/2, 0]) +
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-@switch_cutout)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
-      ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)+0.0])
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
+      ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-plate_mount_t])
     )
     # ) * cube(x: space_width, y: @unit/2, z: @undermount_t).translate(v: [0, 0, 0])
     # ) * cube(x:  space_width, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
@@ -526,13 +527,14 @@ class Keyboard < CrystalScad::Printed
 
         stabilizer += hull(
           cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: 0.1).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth/2),
-          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+2, z: 0.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-1.0, z: -(@stabilizer_slot_depth)-1)
+          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+2, z: 1.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-1.0, z: -(@stabilizer_slot_depth)-1)
         )
 
         stabilizers += stabilizer
       end
 
       obj -= stabilizers.translate(z: undermount_t)
+      # obj += stabilizers.translate(z: undermount_t*2)
     end
     obj
 
