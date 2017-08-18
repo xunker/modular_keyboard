@@ -170,6 +170,15 @@ class Keyboard < CrystalScad::Printed
     # output += screw_holes.scale(v: [1.0, 1.0, 3.0])
     output -= screw_holes
 
+    # top connector screw holes
+    screw_d = 1.5
+    screw_h = 2
+    (mgr.rows.length+1).times do |row_number|
+      # negative 1 (-1) is to get topmost row of holes.
+      top_connector_hole_locations(mgr, row_number-1).each do |coords|
+        output -= cylinder(d: screw_d, h: screw_h+@ff, fn: 12).translate(coords.merge(z: undermount_t-screw_h)).color('red')
+      end
+    end
 
     puts '---'
     puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -184,18 +193,18 @@ class Keyboard < CrystalScad::Printed
     upper_switch_cutout = @switch_cutout+2
     # end_x_spacing = (@unit-@switch_cutout)/2
     connector_t = 1
-    screw_d = 2
+    screw_d = 1.5
 
     upper_row = mgr.rows[row] unless row<0
     lower_row = mgr.rows[row+1] if mgr.rows[row+1]
 
-    y_fudge = 0.375
+    y_reduction = @unit/8
     connector = nil
 
     # Generate connector pieces for upper row
     if upper_row
       upper_row.keys.each do |key|
-        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_reduction, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
 
         unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
@@ -209,7 +218,7 @@ class Keyboard < CrystalScad::Printed
     if lower_row
       # Generate connector pieces for lower row
       lower_row.keys.each do |key|
-        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_fudge, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height(as: :mm))/2)+y_fudge, z: 0)
+        unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_reduction, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height(as: :mm))/2)+y_reduction, z: 0)
 
         unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
@@ -242,13 +251,13 @@ class Keyboard < CrystalScad::Printed
 
     if upper_row
       upper_row.keys[1..-1].each do |key|
-        holes << { x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5) }
+        holes << { x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/4) }
       end
     end
 
     if lower_row
       lower_row.keys[1..-1].each do |key|
-        holes << { x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5) }
+        holes << { x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/4) }
       end
     end
 
