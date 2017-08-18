@@ -201,19 +201,9 @@ class Keyboard < CrystalScad::Printed
 
         connector += unit_connector
 
-        # TODO: stabilizer  cutouts
-
-        # screw holes
-        # TODO: method to return just array of hole coordinates
-        # TODO: make position equidistant from each key
-        # TODO: if width of key at either end is greater than 1 unit, put screw hole around it too
+        # TODO: stabilizer cutouts
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
-        next if key.first? || key.last?
-
-        connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5), z: -@ff).color('red')
       end
-      key = upper_row.keys.last
-      connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5), z: -@ff).color('red')
     end
 
     if lower_row
@@ -225,24 +215,44 @@ class Keyboard < CrystalScad::Printed
 
         connector += unit_connector
 
-        # TODO: stabilizer  cutouts
-
-        # screw holes
-        # TODO: method to return just array of hole coordinates
-        # TODO: make position equidistant from each key
-        # TODO: if width of key at either end is greater than 1 unit, put screw hole around it too
+        # TODO: stabilizer cutouts
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
-        next if key.first? || key.last?
-
-        connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5), z: -@ff).color('red')
       end
-      key = lower_row.keys.last
-      connector -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5), z: -@ff).color('red')
     end
 
     output += connector
 
+    # screw holes
+    top_connector_hole_locations(mgr, row).each do |coords|
+      output -= cylinder(d: screw_d, h: connector_t+(@ff*2), fn: 12).translate(coords.merge(z: -@ff)).color('red')
+    end
+
     output
+  end
+
+  # TODO: make position equidistant from each key
+  # TODO: if width of key at either end is greater than 1 unit, put screw hole around it too
+  def top_connector_hole_locations(mgr, row)
+    holes = []
+
+    upper_switch_cutout = @switch_cutout+2
+
+    upper_row = mgr.rows[row] unless row<0
+    lower_row = mgr.rows[row+1] if mgr.rows[row+1]
+
+    if upper_row
+      upper_row.keys[1..-1].each do |key|
+        holes << { x: key.x_edge_position(:left), y: key.y_position(as: :mm)+((key.height(as: :mm))/2.5) }
+      end
+    end
+
+    if lower_row
+      lower_row.keys[1..-1].each do |key|
+        holes << { x: key.x_edge_position(:left), y: key.y_edge_position(:top)-((key.height(as: :mm))/2.5) }
+      end
+    end
+
+    holes
   end
 
 	def part(show)
