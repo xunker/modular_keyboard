@@ -5,11 +5,11 @@
 Now:
 * Add additional top plate screw holes where unit length is more than 1.0
 * Add holes for adjustment feet
-* Add openings on top row for wires to exit
-* different stabilizer pattern for space bar
 * round corners of top connector
+* build/find adjustment feet
 
 Later:
+* different stabilizer pattern for standard-length space bars
 * Fix switch hole corner cutouts
 * Cherry-style stabilizers
 * channels for wires and sockets on bottom plate

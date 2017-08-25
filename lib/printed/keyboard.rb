@@ -49,13 +49,24 @@ class Keyboard < CrystalScad::Printed
 
     connected = {}
 
+    # for deciding where the wire exits will be
+    median_key_number = mgr.rows.first.keys.length/2
+
     mgr.keys.each do |key|
       unconnected[:above] << key unless key.row.first?
       unconnected[:below] << key unless key.row.last?
       # puts "x: #{key.x_position(as: :mm)}"
       # puts "y: #{key.y_position(as: :mm)}"
       next if render_row && key.row.number != render_row
-      output += complete_unit(key, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?, render_row: render_row}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+      output += complete_unit(key,
+        options: {
+          stabilized: key.stabilized?,
+          no_left_channel: key.first?,
+          no_right_channel: key.last?,
+          render_row: render_row,
+          wire_exit: key.row.first? && (median_key_number-1..median_key_number+1).to_a.include?(key.number)
+        }
+      ).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -170,7 +181,7 @@ class Keyboard < CrystalScad::Printed
           x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
           y_center = (@unit/2)-(stabilizer_slot_height/2)
 
-          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center, z: -@ff)
+          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
         end
 
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
@@ -194,7 +205,7 @@ class Keyboard < CrystalScad::Printed
           x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
           y_center = (@unit/2)-(stabilizer_slot_height/2)
 
-          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center, z: -@ff)
+          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
         end
 
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
@@ -336,10 +347,10 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    # return plate_with_undermount(mgr.keys.first)
-    # return build_layout(mgr, render_row: nil)
+    # return complete_unit(mgr.keys.first, options: { wire_exit: true })
+    return build_layout(mgr, render_row: nil)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
-    return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
@@ -579,6 +590,11 @@ class Keyboard < CrystalScad::Printed
       obj
     else
       obj -= cylinder(d: @wiring_channel_d, h: space_width+(@ff*2), fn: 4).translate(v: [0,0,-@ff]).rotate(x: 0, y: 90, z: 0).translate(v: [0, @x_wiring_channel_offset,0])
+    end
+
+    if options[:wire_exit]
+      # make large channel for wires to exit to go to MCU.
+      obj -= cylinder(d: @wiring_channel_d, h: key.height(as: :mm)/2, fn: 4).scale(x: 1.75, y: 1, z: 1).rotate(x: 270, y: 0, z: 0).translate(x: space_width/2, y: key.height(as: :mm)/1.5)
     end
 
     if options[:stabilized]
