@@ -114,61 +114,12 @@ class Keyboard < CrystalScad::Printed
     output += legends.background
 
     # bottom screw holes
-    screw_holes = nil
-
     screw_d = 2
     screw_h = 3
 
-    # screw hole rules:
-
-    # corner holes
-    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
-    screw_end_y_spacing = screw_end_x_spacing
-    [
-      [mgr.rows.first.keys.first, :top, :left, screw_end_x_spacing, -screw_end_y_spacing],
-      [mgr.rows.first.keys.last, :top, :right, -screw_end_x_spacing, -screw_end_y_spacing],
-      [mgr.rows.last.keys.first, :bottom, :left, screw_end_x_spacing, screw_end_y_spacing],
-      [mgr.rows.last.keys.last, :bottom, :right, -screw_end_x_spacing, screw_end_y_spacing]
-    ].each do |key, y, x, x_offset, y_offset|
-      corner_pos = key.corner_position(x, y)
-      screw_holes += cylinder(d: screw_d, h: screw_h).color('red').translate(x: corner_pos[:x]+x_offset, y: corner_pos[:y]+y_offset, z: -@ff)
+    bottom_plate_hole_locations(mgr).each do |loc|
+      output -= cylinder(d: screw_d, h: screw_h).translate(loc.merge(z: -@ff)).color('purple')
     end
-
-    # row-end screw holes
-    # screw hole in Y-middle of each row at each end
-    mgr.rows[1..-2].each do |row|
-      [:left, :right].each do |direction|
-        corner_pos = row.keys.send(direction == :left ? :first : :last).corner_position(direction, :bottom)
-        screw_holes += cylinder(d: screw_d, h: screw_h).color('blue').translate(x: corner_pos[:x]+(direction == :left ? +screw_end_x_spacing : -screw_end_x_spacing), y: corner_pos[:y]+@unit/2, z: -@ff)
-      end
-    end
-
-    # column-end screw holes
-    # screw hole every 2 units between keys on each column
-    mgr.rows.first.keys[1..-1].each_with_index do |key, idx|
-      next unless idx.odd?
-      corner_pos = key.corner_position(:left, :top)
-      screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]-screw_end_y_spacing, z: -@ff).color('green')
-    end
-    mgr.rows.last.keys[1..-1].each_with_index do |key, idx|
-      next unless idx.odd?
-      corner_pos = key.corner_position(:left, :bottom)
-      screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]+screw_end_y_spacing, z: -@ff).color('green')
-    end
-
-    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
-
-    mgr.rows[1..-2].each_with_index do |row, row_index|
-      # next unless row_index.even?
-      row.keys[1..-1].each_with_index do |key, key_index|
-        next unless key_index.odd?
-        corner_pos = key.corner_position(:left, :bottom)
-        screw_holes += cylinder(d: screw_d, h: screw_h).translate(x: corner_pos[:x], y: corner_pos[:y]+(@unit/2), z: -@ff).color('purple')
-      end
-    end
-
-    # output += screw_holes.scale(v: [1.0, 1.0, 3.0])
-    output -= screw_holes
 
     # top connector screw holes
     screw_d = 1.5
@@ -264,6 +215,88 @@ class Keyboard < CrystalScad::Printed
     holes
   end
 
+  def bottom_plate_hole_locations(mgr)
+    holes = []
+
+    # corner holes
+    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
+    screw_end_y_spacing = screw_end_x_spacing
+    [
+      [mgr.rows.first.keys.first, :top, :left, screw_end_x_spacing, -screw_end_y_spacing],
+      [mgr.rows.first.keys.last, :top, :right, -screw_end_x_spacing, -screw_end_y_spacing],
+      [mgr.rows.last.keys.first, :bottom, :left, screw_end_x_spacing, screw_end_y_spacing],
+      [mgr.rows.last.keys.last, :bottom, :right, -screw_end_x_spacing, screw_end_y_spacing]
+    ].each do |key, y, x, x_offset, y_offset|
+      corner_pos = key.corner_position(x, y)
+      holes << { x: corner_pos[:x]+x_offset, y: corner_pos[:y]+y_offset}
+    end
+
+    # row-end screw holes
+    # screw hole in Y-middle of each row at each end
+    mgr.rows[1..-2].each do |row|
+      [:left, :right].each do |direction|
+        corner_pos = row.keys.send(direction == :left ? :first : :last).corner_position(direction, :bottom)
+        holes << {x: corner_pos[:x]+(direction == :left ? +screw_end_x_spacing : -screw_end_x_spacing), y: corner_pos[:y]+@unit/2}
+      end
+    end
+
+    # column-end screw holes
+    # screw hole every 2 units between keys on each column
+    mgr.rows.first.keys[1..-1].each_with_index do |key, idx|
+      next unless idx.odd?
+      corner_pos = key.corner_position(:left, :top)
+      holes << {x: corner_pos[:x], y: corner_pos[:y]-screw_end_y_spacing}
+    end
+    mgr.rows.last.keys[1..-1].each_with_index do |key, idx|
+      next unless idx.odd?
+      corner_pos = key.corner_position(:left, :bottom)
+      holes << {x: corner_pos[:x], y: corner_pos[:y]+screw_end_y_spacing}
+    end
+
+    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
+
+    mgr.rows[1..-2].each_with_index do |row, row_index|
+      # next unless row_index.even?
+      row.keys[1..-1].each_with_index do |key, key_index|
+        next unless key_index.odd?
+        corner_pos = key.corner_position(:left, :bottom)
+        holes << {x: corner_pos[:x], y: corner_pos[:y]+(@unit/2)}
+      end
+    end
+
+    holes
+  end
+
+  def key_rounded_corner_options(key)
+    {tr: false, tl: false, br: false, bl: false}.merge(
+      bl: (key.first? && key.row.last?) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      tl: (key.first? && key.row.first?) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      br: (key.last? && key.row.last?) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
+      tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm)))
+    )
+  end
+
+  def bottom_plate(mgr, screw_d: 2, thickness: 0.9)
+    def plate_section(key, thickness)
+      rounded_cube(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: key_rounded_corner_options(key))
+    end
+
+    plate = nil
+
+    mgr.rows.each do |row|
+      row.keys.each do |key|
+        plate += plate_section(key, thickness).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm))
+      end
+    end
+
+    bottom_plate_hole_locations(mgr).each do |loc|
+      plate -= cylinder(d: screw_d, h: thickness+(@ff*2)).translate(loc.merge(z: -@ff)).color('purple')
+    end
+
+
+    plate
+  end
+
 	def part(show)
     puts "--- Begin at #{Time.now} --- "
     mgr = Layout.new(filename: './recycler_right.json')
@@ -278,11 +311,13 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
     # return plate_with_undermount(mgr.keys.first)
-    return build_layout(mgr)
+    # return build_layout(mgr)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
+
+    return bottom_plate(mgr)
 
 
     # cherry_mx
@@ -474,12 +509,7 @@ class Keyboard < CrystalScad::Printed
 
     plate_unit(key).translate(v: [0,0,@undermount_t])
 
-    options = {tr: false, tl: false, br: false, bl: false}.merge(
-      bl: (key.first? && key.row.last?) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
-      tl: (key.first? && key.row.first?) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
-      br: (key.last? && key.row.last?) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
-      tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm))),
-    )
+    options = key_rounded_corner_options(key)
 
     (
       rounded_cube(x: space_width, y: @unit, z: @undermount_t, options: options) -

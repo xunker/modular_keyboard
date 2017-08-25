@@ -4,7 +4,6 @@
 
 Now:
 * Add additional top plate screw holes where unit length is more than 1.0
-* Generate bottom plate with screw holes
 * Ability to render single row (Use intersection? What if I want the corners rounded?)
 * Add holes for adjustment feet
 * Add openings on top row for wires to exit
