@@ -35,7 +35,7 @@ class Keyboard < CrystalScad::Printed
     @y_wiring_channel_offset = unit/3
 	end
 
-  def build_layout(mgr)
+  def build_layout(mgr, render_row: nil)
     puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
     puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
     rows = mgr.height
@@ -54,7 +54,8 @@ class Keyboard < CrystalScad::Printed
       unconnected[:below] << key unless key.row.last?
       # puts "x: #{key.x_position(as: :mm)}"
       # puts "y: #{key.y_position(as: :mm)}"
-      output += complete_unit(key, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+      next if render_row && key.row.number != render_row
+      output += complete_unit(key, options: {stabilized: key.stabilized?, no_left_channel: key.first?, no_right_channel: key.last?, render_row: render_row}).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -267,12 +268,17 @@ class Keyboard < CrystalScad::Printed
     holes
   end
 
-  def key_rounded_corner_options(key)
+  def key_rounded_corner_options(key, render_row: nil)
     {tr: false, tl: false, br: false, bl: false}.merge(
-      bl: (key.first? && key.row.last?) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
-      tl: (key.first? && key.row.first?) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
-      br: (key.last? && key.row.last?) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
-      tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm)))
+      bl: (key.first? && (key.row.last? || (render_row && key.row.number == render_row))) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      tl: (key.first? && (key.row.first? || (render_row && key.row.number == render_row))) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      br: (key.last? && (key.row.last? || (render_row && key.row.number == render_row))) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
+      tr: (key.last? && (key.row.first? || (render_row && key.row.number == render_row))) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm)))
+
+      # bl: (key.first? && key.row.last?) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      # tl: (key.first? && key.row.first?) || (key.first? && !key.row.first? && (key.row.previous.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
+      # br: (key.last? && key.row.last?) || (key.last? && !key.row.last? && (key.row.next.width(as: :mm) < key.row.width(as: :mm))),
+      # tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm)))
     )
   end
 
@@ -310,8 +316,8 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    return plate_with_undermount(mgr.keys.first)
-    # return build_layout(mgr)
+    # return plate_with_undermount(mgr.keys.first)
+    return build_layout(mgr, render_row: nil)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
@@ -487,7 +493,7 @@ class Keyboard < CrystalScad::Printed
   end
 
   # width is multiples of unit
-  def plate_unit(key)
+  def plate_unit(key, options = {})
     space_width = @unit * key.width
 
     # cherry_mx().translate(v: [(unit)/2, (unit)/2, -ff]).translate(v: [-0,0,14.2+0.35]) +
@@ -499,7 +505,7 @@ class Keyboard < CrystalScad::Printed
   end
 
   # width is multiples of unit
-  def plate_with_undermount(key)
+  def plate_with_undermount(key, options = {})
     space_width = @unit * key.width
     # the inward curve can begin as soon as plate_unit() ends.
 
@@ -507,9 +513,8 @@ class Keyboard < CrystalScad::Printed
     under_pocket_d = 1.25
     under_pocket_l = switch_cutout*0.9
 
-    plate_unit(key).translate(v: [0,0,@undermount_t])
-
-    options = key_rounded_corner_options(key)
+    plate_unit(key, options: options).translate(v: [0,0,@undermount_t])
+    options = key_rounded_corner_options(key, render_row: options[:render_row])
 
     unit = (
       rounded_cube(x: space_width, y: @unit, z: @undermount_t, options: options) -
@@ -525,12 +530,13 @@ class Keyboard < CrystalScad::Printed
       ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-plate_mount_t])
     )
 
-    corner_cutout_offset = ((@unit * key.width)-switch_cutout)/2
-    modifier = 0.15
-    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
-    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
-    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
-    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
+    # TODO: fix these, puts then in wrong place for wide keys
+    # corner_cutout_offset = ((@unit * key.width)-switch_cutout)/2
+    # modifier = 0.15
+    # unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
+    # unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
+    # unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
+    # unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
 
     # unit *= cube(x: space_width, y: @unit/2, z: @undermount_t).translate(v: [0, 0, 0])
     # unit *= cube(x:  space_width, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
@@ -542,7 +548,7 @@ class Keyboard < CrystalScad::Printed
   # width is multiples of unit
   def complete_unit(key, options: {})
     space_width = @unit * key.width;
-    obj = plate_with_undermount(key)
+    obj = plate_with_undermount(key, options)
     # X wiring channel
     if options[:no_left_channel]
       obj -= cylinder(d: @wiring_channel_d, h: (space_width/2)+(@ff*2), fn: 4).translate(v: [0,0,(space_width/2)]).rotate(x: 0, y: 90, z: 0).translate(v: [0, @x_wiring_channel_offset,0])
