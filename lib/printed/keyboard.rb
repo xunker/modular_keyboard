@@ -162,7 +162,17 @@ class Keyboard < CrystalScad::Printed
 
         connector += unit_connector
 
-        # TODO: stabilizer cutouts
+        if key.stabilized?
+          # wider spaces to clear brackets
+          stabilizer_slot_width = @stabilizer_slot_width*1.4
+          stabilizer_slot_height = @stabilizer_slot_height*1.1
+
+          x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
+          y_center = (@unit/2)-(stabilizer_slot_height/2)
+
+          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center, z: -@ff)
+        end
+
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
       end
     end
@@ -176,7 +186,17 @@ class Keyboard < CrystalScad::Printed
 
         connector += unit_connector
 
-        # TODO: stabilizer cutouts
+        if key.stabilized?
+          # wider spaces to clear brackets
+          stabilizer_slot_width = @stabilizer_slot_width*1.4
+          stabilizer_slot_height = @stabilizer_slot_height*1.1
+
+          x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
+          y_center = (@unit/2)-(stabilizer_slot_height/2)
+
+          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center, z: -@ff)
+        end
+
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
       end
     end
@@ -317,9 +337,10 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
     # return plate_with_undermount(mgr.keys.first)
-    return build_layout(mgr, render_row: nil)
+    # return build_layout(mgr, render_row: nil)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
-    # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
+    # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
 
