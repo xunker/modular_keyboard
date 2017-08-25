@@ -3,13 +3,12 @@
 ### TODO
 
 Now:
-* Screw holes on top
+* Add additional top plate screw holes where unit length is more than 1.0
 * Generate bottom plate with screw holes
-* Generate top partial plate to fit between rows
-* Ability to render single row (Use intersection!)
+* Ability to render single row (Use intersection? What if I want the corners rounded?)
 * Add holes for adjustment feet
 * Add openings on top row for wires to exit
-* Cut-back interior corners (like between sides of keyboard)
+* Cut-back interior corners (like between sides of keyboard, or corners of switch cutout)
 * different stabilizer pattern for space bar
 * round corners of top connector
 
