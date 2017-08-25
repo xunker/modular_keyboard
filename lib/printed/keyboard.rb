@@ -310,14 +310,14 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    # return plate_with_undermount(mgr.keys.first)
+    return plate_with_undermount(mgr.keys.first)
     # return build_layout(mgr)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
     # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
 
-    return bottom_plate(mgr)
+    # return bottom_plate(mgr)
 
 
     # cherry_mx
@@ -511,7 +511,7 @@ class Keyboard < CrystalScad::Printed
 
     options = key_rounded_corner_options(key)
 
-    (
+    unit = (
       rounded_cube(x: space_width, y: @unit, z: @undermount_t, options: options) -
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+@ff).translate(v: [0,0,@undermount_t-@plate_mount_t+@ff]),
@@ -524,9 +524,19 @@ class Keyboard < CrystalScad::Printed
         cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
       ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-plate_mount_t])
     )
-    # ) * cube(x: space_width, y: @unit/2, z: @undermount_t).translate(v: [0, 0, 0])
-    # ) * cube(x:  space_width, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
-    # ) * cube(x: space_width/2, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
+
+    corner_cutout_offset = ((@unit * key.width)-switch_cutout)/2
+    modifier = 0.15
+    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
+    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+modifier, z: @undermount_t-@plate_mount_t)
+    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+switch_cutout-modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
+    unit -= cylinder(d: 1, h: @plate_mount_t+@ff).translate(x: corner_cutout_offset+modifier, y: corner_cutout_offset+switch_cutout-modifier, z: @undermount_t-@plate_mount_t)
+
+    # unit *= cube(x: space_width, y: @unit/2, z: @undermount_t).translate(v: [0, 0, 0])
+    # unit *= cube(x:  space_width, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
+    # unit *= cube(x: space_width/2, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
+
+    unit
   end
 
   # width is multiples of unit

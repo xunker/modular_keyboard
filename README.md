@@ -7,7 +7,6 @@ Now:
 * Ability to render single row (Use intersection? What if I want the corners rounded?)
 * Add holes for adjustment feet
 * Add openings on top row for wires to exit
-* Cut-back interior corners (like between sides of keyboard, or corners of switch cutout)
 * different stabilizer pattern for space bar
 * round corners of top connector
 
