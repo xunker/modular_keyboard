@@ -28,7 +28,7 @@ class Keyboard < CrystalScad::Printed
 
     @plate_mount_t = 1.3
 
-    @undermount_t = 7.0
+    @undermount_t = 8.0
 
     @wiring_channel_d = 6
     @x_wiring_channel_offset = unit/3.5
@@ -347,7 +347,7 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    # return complete_unit(mgr.keys.first, options: { wire_exit: true })
+    return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true })
     return build_layout(mgr, render_row: nil)
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
@@ -542,8 +542,8 @@ class Keyboard < CrystalScad::Printed
     # the inward curve can begin as soon as plate_unit() ends.
 
     # "under pocket" is a space for the clips on the underside of the plate
-    under_pocket_d = 1.25
-    under_pocket_l = switch_cutout*0.9
+    under_pocket_d = 1.8
+    under_pocket_l = switch_cutout*0.4
 
     plate_unit(key, options: options).translate(v: [0,0,@undermount_t])
     options = key_rounded_corner_options(key, render_row: options[:render_row])
@@ -553,12 +553,12 @@ class Keyboard < CrystalScad::Printed
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+@ff).translate(v: [0,0,@undermount_t-@plate_mount_t+@ff]),
         # translate offset below should be half of what is substracted from switch_cutout
-        cube(x: @switch_cutout-1.5, y: @switch_cutout-0, z: @plate_mount_t).translate(v: [0.75,0.0,0])
+        cube(x: @switch_cutout-0.5, y: @switch_cutout-0, z: @plate_mount_t).translate(v: [0.25,0.0,0])
       ).translate(v: [(space_width-@switch_cutout)/2, (@unit-@switch_cutout)/2, -@ff]) -
 
       (
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 12).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
       ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-plate_mount_t])
     )
 
@@ -573,6 +573,7 @@ class Keyboard < CrystalScad::Printed
     # unit *= cube(x: space_width, y: @unit/2, z: @undermount_t).translate(v: [0, 0, 0])
     # unit *= cube(x:  space_width, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
     # unit *= cube(x: space_width/2, y: @unit/2, z: @undermount_t).translate(v: [0, @unit/2, 0])
+    # unit *= cube(x: space_width/2, y: @unit, z: @undermount_t).translate(v: [0, 0, 0])
 
     unit
   end
