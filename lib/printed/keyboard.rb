@@ -21,13 +21,14 @@ class Keyboard < CrystalScad::Printed
     @switch_cutout = 14 # cherry mx
 
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
-    @stabilizer_slot_width = 3.7 # 3.3 (3.5 measured)
-    @stabilizer_slot_height = 14.5 # 14 (14 measured)
+    @stabilizer_slot_width = 3.5 # 3.3 (3.5 measured)
+    @stabilizer_slot_height = 14.0 # 14 (14 measured)
     @stabilizer_slot_depth = 1.2
     @stabilizer_y_offset = 0.25 # 0.75 is too far down, rubs
 
     @plate_mount_t = 1.6 # Cherry MX Brown
-    @plate_mount_t = 1.8 # Greetech Brown
+    # @plate_mount_t = 1.7 # Greetech Brown, measured
+    # @plate_mount_t = 1.6 # Outemu, measured
 
     @undermount_t = 9.0
 
@@ -631,7 +632,7 @@ class Keyboard < CrystalScad::Printed
           ).translate(
             x: x_center+(@stabilizer_spacing/2)*sign,
             y: y_center-@stabilizer_y_offset,
-            z: -@stabilizer_slot_depth/2
+            z: -@stabilizer_slot_depth
           ),
 
           cube(
