@@ -26,13 +26,16 @@ class Keyboard < CrystalScad::Printed
     @stabilizer_slot_depth = 1.2
     @stabilizer_y_offset = 0.25 # 0.75 is too far down, rubs
 
-    @plate_mount_t = 1.3
+    @plate_mount_t = 1.6 # Cherry MX Brown
+    @plate_mount_t = 1.8 # Greetech Brown
 
-    @undermount_t = 8.0
+    @undermount_t = 9.0
 
     @wiring_channel_d = 6
     @x_wiring_channel_offset = unit/3.5
     @y_wiring_channel_offset = unit/3
+
+    @show_legends = false
 	end
 
   def build_layout(mgr, render_row: nil)
@@ -116,14 +119,16 @@ class Keyboard < CrystalScad::Printed
       end
     end
 
-    legends = nil
-    mgr.keys.each do |key|
-      # x_offset = key.x_position(as: :mm)+((key.width(as: :mm))/4)
-      x_offset = (key.x_position(as: :mm)+(key.width(as: :mm)/2))-(@switch_cutout/3)
-      legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height(as: :mm))/2), z: undermount_t)
-    end
+    if @show_legends
+      legends = nil
+      mgr.keys.each do |key|
+        # x_offset = key.x_position(as: :mm)+((key.width(as: :mm))/4)
+        x_offset = (key.x_position(as: :mm)+(key.width(as: :mm)/2))-(@switch_cutout/3)
+        legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height(as: :mm))/2), z: undermount_t)
+      end
 
-    output += legends.background
+      output += legends.background
+    end
 
     # bottom screw holes
     screw_d = 2
@@ -336,7 +341,7 @@ class Keyboard < CrystalScad::Printed
 
 	def part(show)
     puts "--- Begin at #{Time.now} --- "
-    mgr = Layout.new(filename: './recycler_right.json')
+    # mgr = Layout.new(filename: './recycler_right.json')
     # mgr = Layout.new(filename: './recycler_left.json')
     # mgr = Layout.new(filename: './recycler_left_2.json')
     # mgr = Layout.new(filename: './recycler.json')
@@ -345,10 +350,19 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './symbolics_364000.json')
     # mgr = Layout.new(filename: './default_60.json')
     # mgr = Layout.new(filename: './leopold_fc660m.json')
-    # mgr = Layout.new(filename: './stabilizer_test.json')
+    mgr = Layout.new(filename: './stabilizer_test.json')
 
-    return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true })
-    return build_layout(mgr, render_row: nil)
+    # return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true })
+
+    # output = nil
+    # 5.times do |i|
+    #   output += build_layout(mgr, render_row: i).translate(y: -i * 2)
+    # end
+    # return output
+
+    return build_layout(mgr)
+    # return build_layout(mgr, render_row: 3)
+
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
@@ -559,7 +573,7 @@ class Keyboard < CrystalScad::Printed
       (
         cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
         cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
-      ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-plate_mount_t])
+      ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-@plate_mount_t])
     )
 
     # TODO: fix these, puts then in wrong place for wide keys
@@ -610,8 +624,25 @@ class Keyboard < CrystalScad::Printed
         stabilizer += cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: @stabilizer_slot_depth+ff).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth)
 
         stabilizer += hull(
-          cube(x: @stabilizer_slot_width, y: @stabilizer_slot_height, z: 0.1).translate(x: x_center+(@stabilizer_spacing/2)*sign, y: y_center-@stabilizer_y_offset, z: -@stabilizer_slot_depth/2),
-          cube(x: @stabilizer_slot_width+2, y: @stabilizer_slot_height+2, z: 1.1).translate(x: (x_center+(@stabilizer_spacing/2)*sign)-1, y: y_center-@stabilizer_y_offset-1.0, z: -(@stabilizer_slot_depth)-1)
+          cube(
+            x: @stabilizer_slot_width,
+            y: @stabilizer_slot_height,
+            z: 0.1
+          ).translate(
+            x: x_center+(@stabilizer_spacing/2)*sign,
+            y: y_center-@stabilizer_y_offset,
+            z: -@stabilizer_slot_depth/2
+          ),
+
+          cube(
+            x: @stabilizer_slot_width+2,
+            y: @stabilizer_slot_height+2,
+            z: @stabilizer_slot_depth*2
+          ).translate(
+            x: (x_center+(@stabilizer_spacing/2)*sign)-1,
+            y: y_center-@stabilizer_y_offset-1.0,
+            z: -(@stabilizer_slot_depth)-2
+          )
         )
 
         stabilizers += stabilizer
