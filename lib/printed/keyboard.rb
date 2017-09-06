@@ -23,7 +23,7 @@ class Keyboard < CrystalScad::Printed
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
     @stabilizer_slot_width = 3.5 # 3.3 (3.5 measured)
     @stabilizer_slot_height = 14.0 # 14 (14 measured)
-    @stabilizer_slot_depth = 1.2
+    @stabilizer_slot_depth = 1.0
     @stabilizer_y_offset = 0.5 # 0.75 is too far down, rubs
 
     @plate_mount_t = 1.6 # Cherry MX Brown
@@ -638,11 +638,12 @@ class Keyboard < CrystalScad::Printed
           cube(
             x: @stabilizer_slot_width+2,
             y: @stabilizer_slot_height+2,
-            z: @stabilizer_slot_depth*2
+            z: @stabilizer_slot_depth*2.5
           ).translate(
             x: (x_center+(@stabilizer_spacing/2)*sign)-1,
             y: y_center-@stabilizer_y_offset-1.0,
-            z: -(@stabilizer_slot_depth)-2
+            # z: -(@stabilizer_slot_depth)-2.5
+            z: -(@stabilizer_slot_depth*4)
           )
         )
 
