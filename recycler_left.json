@@ -2,4 +2,4 @@
 [{w:1.5},"Tab","Q","W","E","R","T\n\n\n\n\n\n\n->"],
 [{w:1.75},"Caps Lock","A","S","D","F","G\n\n\n\n\n\n\n->"],
 [{w:2.25},"Shift","Z","X","C","V","B\n\n\n\n\n\n\n->"],
-["1\nEnd",".\nDel",{w:1.25},"Alt",{w:1.25},"Win",{w:2.75},"Shift\n\n\n\n\n\n\n->"]
+["1\nFn","`\n~",{w:1.25},"Alt",{w:1.25},"Meta",{w:2.75},"Space\n\n\n\n\n\n\n->"]
