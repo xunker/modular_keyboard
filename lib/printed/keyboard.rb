@@ -362,13 +362,16 @@ class Keyboard < CrystalScad::Printed
     # return output
 
     # return build_layout(mgr)
-    return build_layout(mgr, render_row: 0)
+    # return build_layout(mgr, render_row: 4)
 
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
-    # return rounded_rectangle(x: 5, y: 5, z: 5, options: { tl: false }).background + rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
+    return cube(x: 5, y: 5, z: 5).background + rounded_rectangle(x: 5, y: 5, z: 5, options: { tr: false, adj: {
+      lu: 1, ll: 2, rl: 2, ru: 4,
+      tu: 1, tl: 2, bl: 2, bu: 4,
+    } })
     # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
 
     # return bottom_plate(mgr)
@@ -384,6 +387,7 @@ class Keyboard < CrystalScad::Printed
 
   # Cube that is rounded on the X and Y corners only
   def rounded_rectangle(x:, y:, z:, r: 1.0, fn: 16, options: {})
+    adj = options[:adj] || {}
     options = {
       tl: true,
       tr: true,
@@ -395,11 +399,61 @@ class Keyboard < CrystalScad::Printed
       # no rounding, just use a cube
       cube(x: x, y: y, z: z)
     else
+
+      corner = lambda {|*loc, rounded: true, adj: {}|
+        height = 0.01 # height of cylinder corners OR X/Y/Z of square corners
+
+        loc = Array(loc).flatten
+        top = loc.include?(:top)
+        bottom = !top
+        left = loc.include?(:left)
+        right = !left
+        lower = loc.include?(:lower)
+        upper = !lower
+
+        x_adj = 0
+        y_adj = 0
+        z_adj = 0
+
+        x_adj += x if right
+        y_adj += y if top
+        z_adj += z if upper
+
+        x_adj += adj[:x].to_i if right
+        x_adj -= adj[:x].to_i if left
+        y_adj += adj[:y].to_i if top
+        y_adj -= adj[:y].to_i if bottom
+
+
+        output = if rounded
+          x_adj += (left ? r : -r)
+          y_adj += (bottom ? r : -r)
+          z_adj += (upper ? -height : 0)
+
+          cylinder(r: r, h: height, fn: fn)
+        else
+          x_adj -= height if right
+          y_adj -= height if top
+          z_adj -= height if upper
+
+          cube(x: height, y: height, z: height)
+        end
+
+        output.translate(x: x_adj, y: y_adj, z: z_adj)
+      }
+
       hull(
-        (options[:bl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: r) : cube(x: r, y: r, z: z)),
-        (options[:br] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: r) : cube(x: r, y: r, z: z).translate(x: x-r)),
-        (options[:tr] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: y-r) : cube(x: r, y: r, z: z).translate(x: x-r, y: y-r)),
-        (options[:tl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: y-r) : cube(x: r, y: r, z: z).translate(y: y-r))
+        corner.call(:bottom, :left, :lower, rounded: options[:bl], adj: { x: adj[:ll], y: adj[:bl] }),
+        corner.call(:bottom, :left, :upper, rounded: options[:bl], adj:{ x: adj[:lu], y: adj[:bu] }),
+
+        corner.call(:bottom, :right, :lower, rounded: options[:br], adj: { x: adj[:rl], y: adj[:bl] }),
+        corner.call(:bottom, :right, :upper, rounded: options[:br], adj: { x: adj[:ru], y: adj[:bu] }),
+
+        corner.call(:top, :right, :lower, rounded: options[:tr], adj: { x: adj[:rl], y: adj[:tl] }),
+        corner.call(:top, :right, :upper, rounded: options[:tr], adj: { x: adj[:ru], y: adj[:tu] }),
+
+        corner.call(:top, :left, :lower, rounded: options[:tl], adj: { x: adj[:ll], y: adj[:tl] }),
+        corner.call(:top, :left, :upper, rounded: options[:tl], adj: { x: adj[:lu], y: adj[:tu] })
       )
     end
   end
