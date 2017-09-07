@@ -368,11 +368,13 @@ class Keyboard < CrystalScad::Printed
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
-    return cube(x: 5, y: 5, z: 5).background + rounded_rectangle(x: 5, y: 5, z: 5, options: { tr: false, adj: {
-      lu: 1, ll: 2, rl: 2, ru: 4,
-      tu: 1, tl: 2, bl: 2, bu: 4,
-    } })
-    # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
+
+    # return cube(x: 5, y: 5, z: 5).background + rounded_rectangle(x: 5, y: 5, z: 5, options: { tr: false, adj: {
+      # lu: 1, ll: 2, rl: 2, ru: 4,
+      # tu: 1, tl: 2, bl: 2, bu: 4,
+    # } })
+
+    return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
 
     # return bottom_plate(mgr)
 
@@ -475,14 +477,10 @@ class Keyboard < CrystalScad::Printed
       # no rounding, just use a cube
       cube(x: x, y: y, z: z)
     else
-      # hull(
-      #   (options[:bl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: r) : cube(x: r, y: r, z: z)),
-      #   (options[:br] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: r) : cube(x: r, y: r, z: z).translate(x: x-r)),
-      #   (options[:tr] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: y-r) : cube(x: r, y: r, z: z).translate(x: x-r, y: y-r)),
-      #   (options[:tl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: y-r) : cube(x: r, y: r, z: z).translate(y: y-r))
-      # )
 
-      corner = lambda {|*loc, rounded: true|
+      corner = lambda {|*loc, rounded: true, adj: {}|
+        square_corner_height = 0.01 # side length of square corner cubes
+
         loc = Array(loc).flatten
         top = loc.include?(:top)
         bottom = !top
@@ -495,31 +493,39 @@ class Keyboard < CrystalScad::Printed
         y_adj = 0
         z_adj = 0
 
+        x_adj += x if right
+        y_adj += y if top
+        z_adj += z if upper
+
         output = if rounded
-          x_adj = (left ? r : -r)
-          y_adj = (bottom ? r : -r)
-          z_adj = (lower ? r : -r)
+          x_adj += (left ? r : -r)
+          y_adj += (bottom ? r : -r)
+          z_adj += (lower ? r : -r)
 
           sphere(r: r, fn: fn)
         else
-          x_adj = (right ? -r : 0)
-          y_adj = (top ? -r : 0)
-          z_adj = (upper ? -r : 0)
+          x_adj -= square_corner_height if right
+          y_adj -= square_corner_height if top
+          z_adj -= square_corner_height if upper
 
-          cube(x: r, y: r, z: r)
+          cube(x: square_corner_height, y: square_corner_height, z: square_corner_height)
         end
 
         output.translate(x: x_adj, y: y_adj, z: z_adj)
       }
 
       hull(
-        (corner.call(:bottom, :left, :lower, rounded: options[:bll]) + corner.call(:bottom, :left, :upper, rounded: options[:blu]).translate(z: z)),
+        corner.call(:bottom, :left, :lower, rounded: options[:bll]),
+        corner.call(:bottom, :left, :upper, rounded: options[:blu]),
 
-        (corner.call(:bottom, :right, :lower, rounded: options[:brl]) + corner.call(:bottom, :right, :upper, rounded: options[:bru]).translate(z: z)).translate(x: x),
+        corner.call(:bottom, :right, :lower, rounded: options[:brl]),
+        corner.call(:bottom, :right, :upper, rounded: options[:bru]),
 
-        (corner.call(:top, :right, :lower, rounded: options[:trl]) + corner.call(:top, :right, :upper, rounded: options[:tru]).translate(z: z)).translate(x: x, y: y),
+        corner.call(:top, :right, :lower, rounded: options[:trl]),
+        corner.call(:top, :right, :upper, rounded: options[:tru]),
 
-        (corner.call(:top, :left, :lower, rounded: options[:tll]) + corner.call(:top, :left, :upper, rounded: options[:tlu]).translate(z: z)).translate(y: y)
+        corner.call(:top, :left, :lower, rounded: options[:tll]),
+        corner.call(:top, :left, :upper, rounded: options[:tlu]),
       )
     end
   end
