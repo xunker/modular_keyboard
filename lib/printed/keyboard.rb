@@ -343,7 +343,7 @@ class Keyboard < CrystalScad::Printed
 	def part(show)
     puts "--- Begin at #{Time.now} --- "
     # mgr = Layout.new(filename: './recycler_right.json')
-    # mgr = Layout.new(filename: './recycler_left.json')
+    mgr = Layout.new(filename: './recycler_left.json')
     # mgr = Layout.new(filename: './recycler_left_2.json')
     # mgr = Layout.new(filename: './recycler.json')
     # mgr = Layout.new(filename: './104_ansi.json')
@@ -351,7 +351,7 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './symbolics_364000.json')
     # mgr = Layout.new(filename: './default_60.json')
     # mgr = Layout.new(filename: './leopold_fc660m.json')
-    mgr = Layout.new(filename: './stabilizer_test.json')
+    # mgr = Layout.new(filename: './stabilizer_test.json')
 
     # return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true })
 
@@ -361,8 +361,8 @@ class Keyboard < CrystalScad::Printed
     # end
     # return output
 
-    return build_layout(mgr)
-    # return build_layout(mgr, render_row: 3)
+    # return build_layout(mgr)
+    return build_layout(mgr, render_row: 0)
 
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
