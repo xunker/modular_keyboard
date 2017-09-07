@@ -175,7 +175,7 @@ class Keyboard < CrystalScad::Printed
       upper_row.keys.each do |key|
         unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_reduction, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
 
-        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+        unit_connector -= rounded_rectangle(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
         connector += unit_connector
 
@@ -187,7 +187,7 @@ class Keyboard < CrystalScad::Printed
           x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
           y_center = (@unit/2)-(stabilizer_slot_height/2)
 
-          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
+          connector -= rounded_rectangle(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
         end
 
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
@@ -199,7 +199,7 @@ class Keyboard < CrystalScad::Printed
       lower_row.keys.each do |key|
         unit_connector = cube(x: key.width(as: :mm), y: ((key.height(as: :mm))/2)-y_reduction, z: connector_t).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm)+((key.height(as: :mm))/2)+y_reduction, z: 0)
 
-        unit_connector -= rounded_cube(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
+        unit_connector -= rounded_rectangle(x: upper_switch_cutout, y: upper_switch_cutout, z: connector_t+(@ff*2)).translate(x: key.x_position(as: :mm)+((key.width(as: :mm)-upper_switch_cutout)/2), y: key.y_position(as: :mm)+((@unit-upper_switch_cutout)/2), z: -@ff)
 
         connector += unit_connector
 
@@ -211,7 +211,7 @@ class Keyboard < CrystalScad::Printed
           x_center = ((key.width(as: :mm))/2)-(stabilizer_slot_width/2)
           y_center = (@unit/2)-(stabilizer_slot_height/2)
 
-          connector -= rounded_cube(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
+          connector -= rounded_rectangle(x: (stabilizer_slot_width) + @stabilizer_spacing, y: stabilizer_slot_height, z: connector_t+(@ff*2)).translate(x: (x_center+key.x_position(as: :mm))-(@stabilizer_spacing/2), y: y_center-(@stabilizer_y_offset/2), z: -@ff)
         end
 
         # IDEA: serpentine connector, where the screw hole alternates bewtween lower and upper
@@ -321,7 +321,7 @@ class Keyboard < CrystalScad::Printed
 
   def bottom_plate(mgr, screw_d: 2, thickness: 0.9)
     def plate_section(key, thickness)
-      rounded_cube(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: key_rounded_corner_options(key))
+      rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: key_rounded_corner_options(key))
     end
 
     plate = nil
@@ -368,7 +368,8 @@ class Keyboard < CrystalScad::Printed
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
     # return top_connector(mgr, 0).translate(z: undermount_t*1.1)
-    # return rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
+    # return rounded_rectangle(x: 5, y: 5, z: 5, options: { tl: false }).background + rounded_cube(x: 5, y: 5, z: 5, options: { tl: false })
+    # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
 
     # return bottom_plate(mgr)
 
@@ -381,7 +382,8 @@ class Keyboard < CrystalScad::Printed
     # complete_unit
   end
 
-  def rounded_cube(x:, y:, z:, r: 1.0, fn: 16, options: {})
+  # Cube that is rounded on the X and Y corners only
+  def rounded_rectangle(x:, y:, z:, r: 1.0, fn: 16, options: {})
     options = {
       tl: true,
       tr: true,
@@ -398,6 +400,72 @@ class Keyboard < CrystalScad::Printed
         (options[:br] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: r) : cube(x: r, y: r, z: z).translate(x: x-r)),
         (options[:tr] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: y-r) : cube(x: r, y: r, z: z).translate(x: x-r, y: y-r)),
         (options[:tl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: y-r) : cube(x: r, y: r, z: z).translate(y: y-r))
+      )
+    end
+  end
+
+  # Cube that is rounded on the X,Y, and Z corners.
+  def rounded_cube(x:, y:, z:, r: 1.0, fn: 16, options: {})
+    options = {
+      tll: true,
+      tlu: true,
+      trl: true,
+      tru: true,
+      bll: true,
+      blu: true,
+      brl: true,
+      bru: true
+    }.merge(options)
+
+    if options.none?{|_k,v| !!v}
+      # no rounding, just use a cube
+      cube(x: x, y: y, z: z)
+    else
+      # hull(
+      #   (options[:bl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: r) : cube(x: r, y: r, z: z)),
+      #   (options[:br] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: r) : cube(x: r, y: r, z: z).translate(x: x-r)),
+      #   (options[:tr] ? cylinder(r: r,  h: z,  fn: fn).translate(x: x-r, y: y-r) : cube(x: r, y: r, z: z).translate(x: x-r, y: y-r)),
+      #   (options[:tl] ? cylinder(r: r,  h: z,  fn: fn).translate(x: r, y: y-r) : cube(x: r, y: r, z: z).translate(y: y-r))
+      # )
+
+      corner = lambda {|*loc, rounded: true|
+        loc = Array(loc).flatten
+        top = loc.include?(:top)
+        bottom = !top
+        left = loc.include?(:left)
+        right = !left
+        lower = loc.include?(:lower)
+        upper = !lower
+
+        x_adj = 0
+        y_adj = 0
+        z_adj = 0
+
+        output = if rounded
+          x_adj = (left ? r : -r)
+          y_adj = (bottom ? r : -r)
+          z_adj = (lower ? r : -r)
+
+          sphere(r: r, fn: fn)
+        else
+          x_adj = (right ? -r : 0)
+          y_adj = (top ? -r : 0)
+          z_adj = (upper ? -r : 0)
+
+          cube(x: r, y: r, z: r)
+        end
+
+        output.translate(x: x_adj, y: y_adj, z: z_adj)
+      }
+
+      hull(
+        (corner.call(:bottom, :left, :lower, rounded: options[:bll]) + corner.call(:bottom, :left, :upper, rounded: options[:blu]).translate(z: z)),
+
+        (corner.call(:bottom, :right, :lower, rounded: options[:brl]) + corner.call(:bottom, :right, :upper, rounded: options[:bru]).translate(z: z)).translate(x: x),
+
+        (corner.call(:top, :right, :lower, rounded: options[:trl]) + corner.call(:top, :right, :upper, rounded: options[:tru]).translate(z: z)).translate(x: x, y: y),
+
+        (corner.call(:top, :left, :lower, rounded: options[:tll]) + corner.call(:top, :left, :upper, rounded: options[:tlu]).translate(z: z)).translate(y: y)
       )
     end
   end
@@ -564,7 +632,7 @@ class Keyboard < CrystalScad::Printed
     options = key_rounded_corner_options(key, render_row: options[:render_row])
 
     unit = (
-      rounded_cube(x: space_width, y: @unit, z: @undermount_t, options: options) -
+      rounded_rectangle(x: space_width, y: @unit, z: @undermount_t, options: options) -
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+@ff).translate(v: [0,0,@undermount_t-@plate_mount_t+@ff]),
         # translate offset below should be half of what is substracted from switch_cutout
