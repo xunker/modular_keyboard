@@ -319,7 +319,7 @@ class Keyboard < CrystalScad::Printed
     )
   end
 
-  def bottom_plate(mgr, screw_d: 2, thickness: 0.9)
+  def bottom_plate(mgr, screw_d: 2, thickness: 0.6)
     def plate_section(key, thickness)
       rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: key_rounded_corner_options(key))
     end
@@ -374,9 +374,9 @@ class Keyboard < CrystalScad::Printed
       # tu: 1, tl: 2, bl: 2, bu: 4,
     # } })
 
-    return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
+    # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
 
-    # return bottom_plate(mgr)
+    return bottom_plate(mgr)
 
 
     # cherry_mx
