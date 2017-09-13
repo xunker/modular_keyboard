@@ -132,7 +132,7 @@ class Keyboard < CrystalScad::Printed
     end
 
     # bottom screw holes
-    screw_d = 2
+    screw_d = 1.4
     screw_h = 3
 
     bottom_plate_hole_locations(mgr).each do |loc|
@@ -319,7 +319,7 @@ class Keyboard < CrystalScad::Printed
     )
   end
 
-  def bottom_plate(mgr, screw_d: 2, thickness: 0.6)
+  def bottom_plate(mgr, screw_d: 1.5, thickness: 0.9)
     def plate_section(key, thickness)
       rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: key_rounded_corner_options(key))
     end
