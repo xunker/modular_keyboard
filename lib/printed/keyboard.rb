@@ -63,6 +63,7 @@ class Keyboard < CrystalScad::Printed
       # puts "y: #{key.y_position(as: :mm)}"
       next if render_row && key.row.number != render_row
       output += complete_unit(key,
+      # output += Key.new(key,
         options: {
           stabilized: key.stabilized?,
           no_left_channel: key.first?,
@@ -392,7 +393,7 @@ class Keyboard < CrystalScad::Printed
     # mgr = Layout.new(filename: './leopold_fc660m.json')
     # mgr = Layout.new(filename: './stabilizer_test.json')
 
-    # return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true })
+    # return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true }) + Key.new(mgr.keys.first, wire_exit: false, no_right_channel: true, no_left_channel: true).part.translate(x: 20)
 
     # output = nil
     # 5.times do |i|
@@ -400,9 +401,9 @@ class Keyboard < CrystalScad::Printed
     # end
     # return output
 
-    # return build_layout(mgr)
+    return build_layout(mgr)
     # return build_layout(mgr, render_row: 4, row_options: { trim_y: { bottom: 0.5, top: 0 }})
-    return build_layout(mgr, render_row: 1, row_options: { trim_y: 0.5})
+    # return build_layout(mgr, render_row: 1, row_options: { trim_y: 0.5})
 
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
