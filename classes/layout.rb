@@ -4,13 +4,17 @@ require 'json'
 class Layout
   attr_reader :json, :structure, :rows, :unit_width, :unit_height
   attr_accessor :keys, :stabilizers, :stabilized_width
+
+  DEFAULT_UNIT_WIDTH = 19.05 # Cherry MX
+  DEFAULT_UNIT_HEIGHT = 19.05 # Cherry MX
+
   def initialize(filename: nil, json: nil, options: {})
     # default options
     options = {
-      stabilizers: true,
+      stabilizers: true, # will only be added if width (in units) >= stabilized_width
       stabilized_width: 2.0,
-      unit_width: 19.05, # Cherry MX
-      unit_height: 19.05, # Cherry MX
+      unit_width: options[:unit_width] || DEFAULT_UNIT_WIDTH,
+      unit_height: options[:unit_height] || DEFAULT_UNIT_HEIGHT
     }.merge(options)
 
     if [filename.to_s, json.to_s].join.length == 0
@@ -133,6 +137,7 @@ class Layout
   class Key
     attr_reader :legends, :settings, :number, :row, :row_offset, :additional_offset, :switch_mount, :switch_brand, :switch_type
     attr_accessor :stabilizers
+
     def initialize(legends, settings, key_number, parent_row)
       @number = key_number
       @row = parent_row

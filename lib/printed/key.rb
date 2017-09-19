@@ -2,16 +2,20 @@
 class Key < CrystalScad::Printed
   FF = 0.1
 
+  UNDERMOUNT_T = 9.0
+
   attr_reader :key, :options
   skip [:output, :show, :show_hardware]
 
   # @params key Layout::Key the key to render
   # key accepts nil because the crystalscad render action instantiates it
   def initialize(key = nil, options: {})
+    return if key.nil?
+
     @options = options
     @key = key
 
-    @unit = 19.05 # cherry mx
+    @unit = key.unit_width # cherry mx
     @switch_cutout = 14 # cherry mx
 
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
@@ -24,7 +28,7 @@ class Key < CrystalScad::Printed
     # @plate_mount_t = 1.7 # Greetech Brown, measured
     # @plate_mount_t = 1.6 # Outemu, measured
 
-    @undermount_t = 9.0
+    @undermount_t = UNDERMOUNT_T
 
     @wiring_channel_d = 6
     @x_wiring_channel_offset = unit/3.5
@@ -101,10 +105,11 @@ class Key < CrystalScad::Printed
     under_pocket_l = switch_cutout*0.4
 
     plate_unit.translate(v: [0,0,@undermount_t])
-    options = key_rounded_corner_options
+
+    options = Key.key_rounded_corner_options(key, render_row: (options || {})[:render_row])
 
     unit = (
-      rounded_rectangle(x: space_width, y: @unit, z: @undermount_t, options: options) -
+      Common.rounded_rectangle(x: space_width, y: @unit, z: @undermount_t, options: options) -
       hull(
         cube(x: @switch_cutout, y: @switch_cutout, z: @plate_mount_t+FF).translate(v: [0,0,@undermount_t-@plate_mount_t+FF]),
         # translate offset below should be half of what is substracted from switch_cutout
@@ -144,8 +149,8 @@ class Key < CrystalScad::Printed
     )
   end
 
-  def key_rounded_corner_options
-    render_row = options[:render_row]
+  # @params key Layout::Key the key to render
+  def self.key_rounded_corner_options(key, render_row: nil)
 
     {tr: false, tl: false, br: false, bl: false}.merge(
       bl: (key.first? && (key.row.last? || (render_row && key.row.number == render_row))) || (key.first? && !key.row.last? && (key.row.next.keys.first.x_edge_position(:left) > key.x_edge_position(:left))),
@@ -159,78 +164,4 @@ class Key < CrystalScad::Printed
       # tr: (key.last? && key.row.first?) || (key.last? && !key.row.first? && (key.row.previous.width(as: :mm) < key.row.width(as: :mm)))
     )
   end
-
-  # Cube that is rounded on the X and Y corners only
-  def rounded_rectangle(x:, y:, z:, r: 1.0, fn: 16, options: {})
-    adj = options[:adj] || {}
-    options = {
-      tl: true,
-      tr: true,
-      bl: true,
-      br: true
-    }.merge(options)
-
-    if options.none?{|_k,v| !!v}
-      # no rounding, just use a cube
-      cube(x: x, y: y, z: z)
-    else
-
-      corner = lambda {|*loc, rounded: true, adj: {}|
-        height = 0.01 # height of cylinder corners OR X/Y/Z of square corners
-
-        loc = Array(loc).flatten
-        top = loc.include?(:top)
-        bottom = !top
-        left = loc.include?(:left)
-        right = !left
-        lower = loc.include?(:lower)
-        upper = !lower
-
-        x_adj = 0
-        y_adj = 0
-        z_adj = 0
-
-        x_adj += x if right
-        y_adj += y if top
-        z_adj += z if upper
-
-        x_adj += adj[:x].to_i if right
-        x_adj -= adj[:x].to_i if left
-        y_adj += adj[:y].to_i if top
-        y_adj -= adj[:y].to_i if bottom
-
-
-        output = if rounded
-          x_adj += (left ? r : -r)
-          y_adj += (bottom ? r : -r)
-          z_adj += (upper ? -height : 0)
-
-          cylinder(r: r, h: height, fn: fn)
-        else
-          x_adj -= height if right
-          y_adj -= height if top
-          z_adj -= height if upper
-
-          cube(x: height, y: height, z: height)
-        end
-
-        output.translate(x: x_adj, y: y_adj, z: z_adj)
-      }
-
-      hull(
-        corner.call(:bottom, :left, :lower, rounded: options[:bl], adj: { x: adj[:ll], y: adj[:bl] }),
-        corner.call(:bottom, :left, :upper, rounded: options[:bl], adj:{ x: adj[:lu], y: adj[:bu] }),
-
-        corner.call(:bottom, :right, :lower, rounded: options[:br], adj: { x: adj[:rl], y: adj[:bl] }),
-        corner.call(:bottom, :right, :upper, rounded: options[:br], adj: { x: adj[:ru], y: adj[:bu] }),
-
-        corner.call(:top, :right, :lower, rounded: options[:tr], adj: { x: adj[:rl], y: adj[:tl] }),
-        corner.call(:top, :right, :upper, rounded: options[:tr], adj: { x: adj[:ru], y: adj[:tu] }),
-
-        corner.call(:top, :left, :lower, rounded: options[:tl], adj: { x: adj[:ll], y: adj[:tl] }),
-        corner.call(:top, :left, :upper, rounded: options[:tl], adj: { x: adj[:lu], y: adj[:tu] })
-      )
-    end
-  end
-
 end
