@@ -132,6 +132,21 @@ class Layout
     def previous
       layout.rows[number-1] unless first?
     end
+
+    # Returns position of left (x-plane) of row
+    def x_position(as: :units)
+      keys.first.x_position(as: as)
+    end
+
+    # Returns position of bottom (y-plane) of row
+    def y_position(as: :units)
+      keys.first.y_position(as: as)
+    end
+
+    # Returns position of bottom-left corner of row
+    def position(as: :units)
+      keys.first.position(as: as)
+    end
   end
 
   class Key

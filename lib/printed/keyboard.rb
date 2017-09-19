@@ -34,24 +34,13 @@ class Keyboard < CrystalScad::Printed
 
     connected = {}
 
-    # for deciding where the wire exits will be
-    median_key_number = mgr.rows.first.keys.length/2
-
-    mgr.keys.each do |key|
-      unconnected[:above] << key unless key.row.first?
-      unconnected[:below] << key unless key.row.last?
-      # puts "x: #{key.x_position(as: :mm)}"
-      # puts "y: #{key.y_position(as: :mm)}"
+    mgr.rows.each do |row|
+      row.keys.each do |key|
+        unconnected[:above] << key unless row.first?
+        unconnected[:below] << key unless row.last?
+      end
       next if render_row && key.row.number != render_row
-      output += Key.new(key,
-        options: {
-          stabilized: key.stabilized?,
-          no_left_channel: key.first?,
-          no_right_channel: key.last?,
-          render_row: render_row,
-          wire_exit: key.row.first? && (median_key_number-1..median_key_number+1).to_a.include?(key.number)
-        }
-      ).part.translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+      output += Row.new(row).part.translate(y: row.y_position(as: :mm))
     end
 
     if render_row
