@@ -39,7 +39,7 @@ class Keyboard < CrystalScad::Printed
     @show_legends = false
 	end
 
-  def build_layout(mgr, render_row: nil)
+  def build_layout(mgr, render_row: nil, row_options: {})
     puts "keyboard width in units: #{mgr.width(as: :units)}, keyboard width in mm: #{mgr.width(as: :mm)}"
     puts "keyboard height in units: #{mgr.height(as: :units)}, keyboard height in mm: #{mgr.height(as: :mm)}"
     rows = mgr.height
@@ -71,6 +71,45 @@ class Keyboard < CrystalScad::Printed
           wire_exit: key.row.first? && (median_key_number-1..median_key_number+1).to_a.include?(key.number)
         }
       ).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm), z: 0)
+    end
+
+    if render_row
+      row = mgr.rows[render_row]
+      if trim_y = row_options[:trim_y]
+        # options to narrow Y-width of each rendered row to compensate for
+        # printer calibration and variance. To be used to allow the rows to fit
+        # together properly without having to sand/grind/trim the pieces by hand.
+
+        trim_y_cube = if trim_y.is_a? Hash
+          # adjusting the top and bottom separately
+          bottom = cube(
+              x: row.width(as: :mm)+(@ff*2),
+              y: @unit-(trim_y[:bottom].to_f*2.0),
+              z: 0.1
+          ).translate(x: -@ff, y: trim_y[:bottom].to_f, z: -@ff)
+
+          top = cube(
+            x: row.width(as: :mm)+(@ff*2),
+            y: @unit-(trim_y[:top].to_f*2.0),
+            z: 0.1
+          ).translate(x: -@ff, y: trim_y[:top].to_f, z: undermount_t+@ff)
+
+          hull(bottom, top).translate(y: row.keys.first.y_position(as: :mm))
+        else
+          # assume trim_y is an int/float, and adjust the side as a whole
+          cube(
+            x: row.width(as: :mm)+(@ff*2),
+            y: @unit-(trim_y*2),
+            z: undermount_t+(@ff*2)
+          ).translate(y: row.keys.first.y_position(as: :mm)+trim_y)
+        end
+
+        output *= trim_y_cube.translate(
+          x: row.keys.first.x_position(as: :mm)-@ff,
+          z: -@ff
+        )
+
+      end
     end
 
     # puts "Unconnected above: #{unconnected[:above].map(&:position).sort_by{|h| h[:y].to_s + h[:x].to_s}}"
@@ -362,7 +401,8 @@ class Keyboard < CrystalScad::Printed
     # return output
 
     # return build_layout(mgr)
-    # return build_layout(mgr, render_row: 4)
+    # return build_layout(mgr, render_row: 4, row_options: { trim_y: { bottom: 0.5, top: 0 }})
+    return build_layout(mgr, render_row: 1, row_options: { trim_y: 0.5})
 
     # return build_layout(mgr) + (top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3)).color('blue').translate(z: undermount_t*1.1)
     # return build_layout(mgr) + (top_connector(mgr, -1) + top_connector(mgr, 0) + top_connector(mgr, 1) + top_connector(mgr, 2) + top_connector(mgr, 3) + top_connector(mgr, 4)).color('blue').translate(z: undermount_t*1.1)
@@ -376,7 +416,7 @@ class Keyboard < CrystalScad::Printed
 
     # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
 
-    return bottom_plate(mgr)
+    # return bottom_plate(mgr, thickness: 0.7)
 
 
     # cherry_mx
