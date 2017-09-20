@@ -8,6 +8,14 @@ class BottomPlate < CrystalScad::Printed
   SCREW_H = 3
   THICKNESS = 0.9
 
+  FOOT_SCREW_D = 3
+  FOOT_SCREW_X_SPACING = 10
+  FOOT_SCREW_Y_SPACING = 5
+  FOOT_SCREW_ROWS = 3
+
+  FOOT_SCREW_X_OFFSET = 15
+  FOOT_SCREW_Y_OFFSET = 3
+
   skip :output
 
 	def initialize(thickness: THICKNESS)
@@ -18,7 +26,18 @@ class BottomPlate < CrystalScad::Printed
     puts "--- Begin at #{Time.now} ---"
     mgr = Layout.new(filename: Keyboard::FILENAME)
 
+    # return foot_screw_hole_pair
     return bottom_plate(mgr, thickness: 0.7)
+  end
+
+  def foot_screw_hole_pair
+    output = nil
+    FOOT_SCREW_ROWS.times do |row|
+      [1,-1].each do | sign|
+        output += cylinder(d: FOOT_SCREW_D, h: thickness+(FF*2), fn: 12).translate(x: (FOOT_SCREW_X_SPACING/2)*sign, y: row*FOOT_SCREW_Y_SPACING, z:-FF)
+      end
+    end
+    output
   end
 
   def bottom_plate(mgr, screw_d: SCREW_D, screw_d_slop: SCREW_D_SLOP, thickness: @thickness)
@@ -37,6 +56,15 @@ class BottomPlate < CrystalScad::Printed
     BottomPlate.bottom_plate_hole_locations(mgr).each do |loc|
       plate -= cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2)).translate(loc.merge(z: -FF)).color('purple')
     end
+
+    plate -= (
+      foot_screw_hole_pair.translate(
+        x: FOOT_SCREW_X_OFFSET
+      ) +
+      foot_screw_hole_pair.translate(
+        x: mgr.rows.first.keys.last.x_edge_position(:right)-FOOT_SCREW_X_OFFSET
+      )
+    ).translate(y: mgr.rows.first.keys.first.y_edge_position(:bottom)+FOOT_SCREW_Y_OFFSET)
 
     plate
   end

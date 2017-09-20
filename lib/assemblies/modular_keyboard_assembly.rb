@@ -29,6 +29,12 @@ class Modular_keyboardAssembly < CrystalScad::Assembly
 
 		res = keyboard.show.translate(z: bottom_plate.thickness + PART_SPACING)
 		res += bottom_plate.show
+
+		# left foot
+		res += Foot.new.assembled.rotate(x: 180).translate(x: 7, y: 92, z: -PART_SPACING)
+		# right foot
+		res += Foot.new.assembled.rotate(x: 180).translate(x: 110.35, y: 92, z: -PART_SPACING)
+
 		res
 	end
 
