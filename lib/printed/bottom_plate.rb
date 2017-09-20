@@ -6,7 +6,11 @@ class BottomPlate < CrystalScad::Printed
   SCREW_D = 1.4
   SCREW_D_SLOP = 0.08 # make screw holes on plate this much larger to account for "squish"
   SCREW_H = 3
-  THICKNESS = 0.9
+  THICKNESS = 1.2 # should be even multiple of layer height
+
+  TAPER = true # do you want to taper the bottom edge? Allowed for thicker/more rigid plate elsewhere.
+  TAPER_THICKNESS = 0.4 # should be even multiple of layer height
+  TAPER_ANGLE = 2 # degrees, smaller means taper is spread along more of plate
 
   FOOT_SCREW_D = 3
   FOOT_SCREW_X_SPACING = 10
@@ -27,7 +31,7 @@ class BottomPlate < CrystalScad::Printed
     mgr = Layout.new(filename: Keyboard::FILENAME)
 
     # return foot_screw_hole_pair
-    return bottom_plate(mgr, thickness: 0.7)
+    return bottom_plate(mgr)
   end
 
   def foot_screw_hole_pair
@@ -65,6 +69,15 @@ class BottomPlate < CrystalScad::Printed
         x: mgr.rows.first.keys.last.x_edge_position(:right)-FOOT_SCREW_X_OFFSET
       )
     ).translate(y: mgr.rows.first.keys.first.y_edge_position(:bottom)+FOOT_SCREW_Y_OFFSET)
+
+    if TAPER
+      taper_t = thickness*2
+      plate -= cube(
+        x: mgr.width(as: :mm),
+        y: mgr.height(as: :mm),
+        z: taper_t
+      ).rotate(x: -TAPER_ANGLE).translate(y: -TAPER_ANGLE*0.1, z: -(thickness+TAPER_THICKNESS))
+    end
 
     plate
   end
