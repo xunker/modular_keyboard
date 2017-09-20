@@ -2,12 +2,24 @@ require "awesome_print"
 
 class Keyboard < CrystalScad::Printed
   FF = 0.1
+  SWITCH_CUTOUT = 14 # cherry mx
+
+  # FILENAME = './recycler_right.json'
+  FILENAME = './recycler_left.json'
+  # FILENAME = './recycler_left_2.json'
+  # FILENAME = './recycler.json'
+  # FILENAME = './104_ansi.json'
+  # FILENAME = './104_iso.json'
+  # FILENAME = './symbolics_364000.json'
+  # FILENAME = './default_60.json'
+  # FILENAME = './leopold_fc660m.json'
+  # FILENAME = './stabilizer_test.json'
+
 
   skip :output
 
 	def initialize()
     @unit = Layout::DEFAULT_UNIT_WIDTH
-    @switch_cutout = 14 # cherry mx
 
     @stabilizer_spacing = 24 # 20.6 (20.5 measured)?
     @stabilizer_slot_width = 3.5 # 3.3 (3.5 measured)
@@ -133,7 +145,7 @@ class Keyboard < CrystalScad::Printed
       legends = nil
       mgr.keys.each do |key|
         # x_offset = key.x_position(as: :mm)+((key.width(as: :mm))/4)
-        x_offset = (key.x_position(as: :mm)+(key.width(as: :mm)/2))-(@switch_cutout/3)
+        x_offset = (key.x_position(as: :mm)+(key.width(as: :mm)/2))-(SWITCH_CUTOUT/3)
         legends += text(text: key.legend.to_s.gsub("\"", "Quote"), size: 3).translate(x: x_offset, y: key.y_position(as: :mm)+((key.height(as: :mm))/2), z: Key::UNDERMOUNT_T)
       end
 
@@ -141,11 +153,11 @@ class Keyboard < CrystalScad::Printed
     end
 
     # bottom screw holes
-    screw_d = 1.4
-    screw_h = 3
-
-    bottom_plate_hole_locations(mgr).each do |loc|
-      output -= cylinder(d: screw_d, h: screw_h).translate(loc.merge(z: -FF)).color('purple')
+    BottomPlate.bottom_plate_hole_locations(mgr).each do |loc|
+      output -= cylinder(
+        d: BottomPlate::SCREW_D,
+        h: BottomPlate::SCREW_H
+      ).translate(loc.merge(z: -FF)).color('purple')
     end
 
     # top connector screw holes
@@ -168,8 +180,8 @@ class Keyboard < CrystalScad::Printed
   def top_connector(mgr, row)
     output = nil
 
-    upper_switch_cutout = @switch_cutout+2
-    # end_x_spacing = (@unit-@switch_cutout)/2
+    upper_switch_cutout = SWITCH_CUTOUT+2
+    # end_x_spacing = (@unit-SWITCH_CUTOUT)/2
     connector_t = 1
     screw_d = 1.5
 
@@ -242,7 +254,7 @@ class Keyboard < CrystalScad::Printed
   def top_connector_hole_locations(mgr, row)
     holes = []
 
-    upper_switch_cutout = @switch_cutout+2
+    upper_switch_cutout = SWITCH_CUTOUT+2
 
     upper_row = mgr.rows[row] unless row<0
     lower_row = mgr.rows[row+1] if mgr.rows[row+1]
@@ -262,90 +274,10 @@ class Keyboard < CrystalScad::Printed
     holes
   end
 
-  def bottom_plate_hole_locations(mgr)
-    holes = []
-
-    # corner holes
-    screw_end_x_spacing = ((@unit-@switch_cutout)/2)/1.5
-    screw_end_y_spacing = screw_end_x_spacing
-    [
-      [mgr.rows.first.keys.first, :top, :left, screw_end_x_spacing, -screw_end_y_spacing],
-      [mgr.rows.first.keys.last, :top, :right, -screw_end_x_spacing, -screw_end_y_spacing],
-      [mgr.rows.last.keys.first, :bottom, :left, screw_end_x_spacing, screw_end_y_spacing],
-      [mgr.rows.last.keys.last, :bottom, :right, -screw_end_x_spacing, screw_end_y_spacing]
-    ].each do |key, y, x, x_offset, y_offset|
-      corner_pos = key.corner_position(x, y)
-      holes << { x: corner_pos[:x]+x_offset, y: corner_pos[:y]+y_offset}
-    end
-
-    # row-end screw holes
-    # screw hole in Y-middle of each row at each end
-    mgr.rows[1..-2].each do |row|
-      [:left, :right].each do |direction|
-        corner_pos = row.keys.send(direction == :left ? :first : :last).corner_position(direction, :bottom)
-        holes << {x: corner_pos[:x]+(direction == :left ? +screw_end_x_spacing : -screw_end_x_spacing), y: corner_pos[:y]+@unit/2}
-      end
-    end
-
-    # column-end screw holes
-    # screw hole every 2 units between keys on each column
-    mgr.rows.first.keys[1..-1].each_with_index do |key, idx|
-      next unless idx.odd?
-      corner_pos = key.corner_position(:left, :top)
-      holes << {x: corner_pos[:x], y: corner_pos[:y]-screw_end_y_spacing}
-    end
-    mgr.rows.last.keys[1..-1].each_with_index do |key, idx|
-      next unless idx.odd?
-      corner_pos = key.corner_position(:left, :bottom)
-      holes << {x: corner_pos[:x], y: corner_pos[:y]+screw_end_y_spacing}
-    end
-
-    #  screw hole every 3 units (on Y-middle) on every-other row for inside rows
-
-    mgr.rows[1..-2].each_with_index do |row, row_index|
-      # next unless row_index.even?
-      row.keys[1..-1].each_with_index do |key, key_index|
-        next unless key_index.odd?
-        corner_pos = key.corner_position(:left, :bottom)
-        holes << {x: corner_pos[:x], y: corner_pos[:y]+(@unit/2)}
-      end
-    end
-
-    holes
-  end
-
-  def bottom_plate(mgr, screw_d: 1.5, thickness: 0.9)
-    def plate_section(key, thickness)
-      Common.rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: Key.key_rounded_corner_options(key))
-    end
-
-    plate = nil
-
-    mgr.rows.each do |row|
-      row.keys.each do |key|
-        plate += plate_section(key, thickness).translate(x: key.x_position(as: :mm), y: key.y_position(as: :mm))
-      end
-    end
-
-    bottom_plate_hole_locations(mgr).each do |loc|
-      plate -= cylinder(d: screw_d, h: thickness+(FF*2)).translate(loc.merge(z: -FF)).color('purple')
-    end
-
-    plate
-  end
-
 	def part(show)
-    puts "--- Begin at #{Time.now} --- "
-    # mgr = Layout.new(filename: './recycler_right.json')
-    mgr = Layout.new(filename: './recycler_left.json')
-    # mgr = Layout.new(filename: './recycler_left_2.json')
-    # mgr = Layout.new(filename: './recycler.json')
-    # mgr = Layout.new(filename: './104_ansi.json')
-    # mgr = Layout.new(filename: './104_iso.json')
-    # mgr = Layout.new(filename: './symbolics_364000.json')
-    # mgr = Layout.new(filename: './default_60.json')
-    # mgr = Layout.new(filename: './leopold_fc660m.json')
-    # mgr = Layout.new(filename: './stabilizer_test.json')
+    puts "--- Begin at #{Time.now} ---"
+
+    mgr = Layout.new(filename: FILENAME)
 
     # return complete_unit(mgr.keys.first, options: { wire_exit: false, no_right_channel: true, no_left_channel: true }) + Key.new(mgr.keys.first, wire_exit: false, no_right_channel: true, no_left_channel: true).part.translate(x: 20)
 
@@ -370,16 +302,6 @@ class Keyboard < CrystalScad::Printed
     # } })
 
     # return cube(x: 5, y: 5, z: 5).background - rounded_cube(x: 5, y: 5, z: 5, options: { tru: false, bll: false})
-
-    # return bottom_plate(mgr, thickness: 0.7)
-
-
-    # cherry_mx
-    # socket
-    # socket_with_switch
-    # plate_unit
-    # plate_with_undermount
-    # complete_unit
   end
 
 end
