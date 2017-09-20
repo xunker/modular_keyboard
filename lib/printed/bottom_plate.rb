@@ -1,5 +1,6 @@
 # The bottom plate of the keyboard, also includes attachment points for feet
 class BottomPlate < CrystalScad::Printed
+  attr_reader :thickness
   FF = 0.1
 
   SCREW_D = 1.4
@@ -9,8 +10,8 @@ class BottomPlate < CrystalScad::Printed
 
   skip :output
 
-	def initialize()
-
+	def initialize(thickness: THICKNESS)
+    @thickness = thickness
   end
 
   def part(show)
@@ -20,7 +21,7 @@ class BottomPlate < CrystalScad::Printed
     return bottom_plate(mgr, thickness: 0.7)
   end
 
-  def bottom_plate(mgr, screw_d: SCREW_D, screw_d_slop: SCREW_D_SLOP, thickness: THICKNESS)
+  def bottom_plate(mgr, screw_d: SCREW_D, screw_d_slop: SCREW_D_SLOP, thickness: @thickness)
     def plate_section(key, thickness)
       Common.rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: Key.key_rounded_corner_options(key))
     end

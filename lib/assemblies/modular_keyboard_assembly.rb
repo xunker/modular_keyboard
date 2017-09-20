@@ -1,5 +1,5 @@
 class Modular_keyboardAssembly < CrystalScad::Assembly
-
+	PART_SPACING = 5
 	# Assemblies are used to show how different parts interact on your design.
 
 	# Skip generation of the 'output' method for this assembly.
@@ -23,6 +23,13 @@ class Modular_keyboardAssembly < CrystalScad::Assembly
 		#
 		# # always make sure the lowest statement always returns the object that you're working on
 		# res
+
+		keyboard = Keyboard.new
+		bottom_plate = BottomPlate.new
+
+		res = keyboard.show.translate(z: bottom_plate.thickness + PART_SPACING)
+		res += bottom_plate.show
+		res
 	end
 
 end
