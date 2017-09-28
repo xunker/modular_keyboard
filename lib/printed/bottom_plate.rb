@@ -3,10 +3,14 @@ class BottomPlate < CrystalScad::Printed
   attr_reader :thickness
   FF = 0.1
 
+  THICKNESS = 1.2 # should be even multiple of layer height
+
   SCREW_D = 1.4
+  SCREW_COUNTERSINK_H = THICKNESS/1.5
+  SCREW_COUNTERSINK_D = SCREW_D*2
   SCREW_D_SLOP = 0.08 # make screw holes on plate this much larger to account for "squish"
   SCREW_H = 3
-  THICKNESS = 1.2 # should be even multiple of layer height
+
 
   TAPER = true # do you want to taper the bottom edge? Allowed for thicker/more rigid plate elsewhere.
   TAPER_THICKNESS = 0.4 # should be even multiple of layer height
@@ -58,7 +62,9 @@ class BottomPlate < CrystalScad::Printed
     end
 
     BottomPlate.bottom_plate_hole_locations(mgr).each do |loc|
-      plate -= cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2)).translate(loc.merge(z: -FF)).color('purple')
+      screw_hole = cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2))
+      screw_hole += cylinder(d: SCREW_COUNTERSINK_D, h: thickness+(FF*2)).translate(z: -THICKNESS+SCREW_COUNTERSINK_H)
+      plate -= screw_hole.translate(loc.merge(z: -FF)).color('purple')
     end
 
 
