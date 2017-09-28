@@ -4,6 +4,7 @@ class Foot < CrystalScad::Printed
   FF = 0.1
 
   ATTACHMENT_THICKNESS = 1
+  LEG_TICKNESS = 3
   LEG_LENGTH = 5
   FOOT_D = 9
 
@@ -56,18 +57,18 @@ class Foot < CrystalScad::Printed
     tab = cube(
       x: BottomPlate::FOOT_SCREW_D,
       y: BottomPlate::FOOT_SCREW_D*2,
-      z: ATTACHMENT_THICKNESS
+      z: LEG_TICKNESS
     )
     tab += cylinder(
       d: BottomPlate::FOOT_SCREW_D*2,
-      h: ATTACHMENT_THICKNESS
+      h: LEG_TICKNESS
     ).translate(
       y: BottomPlate::FOOT_SCREW_D
     )
 
     tab -= cylinder(
       d: BottomPlate::FOOT_SCREW_D,
-      h: ATTACHMENT_THICKNESS+(FF*2)
+      h: LEG_TICKNESS+(FF*2)
     ).translate(
       y: BottomPlate::FOOT_SCREW_D,
       z: -FF
@@ -88,33 +89,33 @@ class Foot < CrystalScad::Printed
     tab = cube(
       x: LEG_LENGTH,
       y: BottomPlate::FOOT_SCREW_D*2,
-      z: ATTACHMENT_THICKNESS
+      z: LEG_TICKNESS
     ) + hull(
       # buttress
       cube(
         x: 0.1, # just exists for hull, so size not important
         y: BottomPlate::FOOT_SCREW_D*2,
-        z: ATTACHMENT_THICKNESS
+        z: LEG_TICKNESS
       ).translate(x: BottomPlate::FOOT_SCREW_D),
 
       cube(
         x: 0.1, # just exists for hull, so size not important
         y: BottomPlate::FOOT_SCREW_D*2,
-        z: ATTACHMENT_THICKNESS*3
+        z: FOOT_D/1.5
       ).translate(x: LEG_LENGTH)
     )
 
 
     tab += cylinder(
       d: BottomPlate::FOOT_SCREW_D*2,
-      h: ATTACHMENT_THICKNESS
+      h: LEG_TICKNESS
     ).translate(
       y: BottomPlate::FOOT_SCREW_D
     )
 
     tab -= cylinder(
       d: BottomPlate::FOOT_SCREW_D,
-      h: ATTACHMENT_THICKNESS*2
+      h: LEG_TICKNESS*2
     ).translate(
       y: BottomPlate::FOOT_SCREW_D,
       z: -FF
@@ -122,11 +123,11 @@ class Foot < CrystalScad::Printed
 
     foot = cylinder(
       d: FOOT_D,
-      h: ATTACHMENT_THICKNESS
+      h: LEG_TICKNESS
     ) - cube(
       x: FOOT_D,
       y: FOOT_D,
-      z: ATTACHMENT_THICKNESS+(FF*2)
+      z: LEG_TICKNESS+(FF*2)
     ).translate(
       y: -FOOT_D/2,
       x: FOOT_D/3,
