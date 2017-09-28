@@ -61,14 +61,26 @@ class BottomPlate < CrystalScad::Printed
       plate -= cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2)).translate(loc.merge(z: -FF)).color('purple')
     end
 
-    plate -= (
-      foot_screw_hole_pair.translate(
-        x: FOOT_SCREW_X_OFFSET
-      ) +
-      foot_screw_hole_pair.translate(
-        x: mgr.rows.first.keys.last.x_edge_position(:right)-FOOT_SCREW_X_OFFSET
+
+    # Placement of foot screws
+
+    min_x_offset = mgr.rows.map{|r| r.keys.first}
+      .max_by{|k| k.x_edge_position(:left)}
+      .x_edge_position(:left)
+
+    max_x_offset = mgr.rows.map{|r| r.keys.last}
+      .min_by{|k| k.x_edge_position(:right)}
+      .x_edge_position(:right)
+
+    [
+      min_x_offset+FOOT_SCREW_X_SPACING,
+      max_x_offset-FOOT_SCREW_X_SPACING
+    ].each do |x_pos|
+      plate -= foot_screw_hole_pair.translate(
+        x: x_pos,
+        y: mgr.rows.first.keys.first.y_edge_position(:bottom)+FOOT_SCREW_Y_OFFSET
       )
-    ).translate(y: mgr.rows.first.keys.first.y_edge_position(:bottom)+FOOT_SCREW_Y_OFFSET)
+    end
 
     if TAPER
       taper_t = thickness*2
