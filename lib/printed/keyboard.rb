@@ -19,7 +19,8 @@ class Keyboard < CrystalScad::Printed
   # 1 = 6:34 to render
   # 1.5 = 4:12 to render
   # 4 = 3:25 to render
-  $fn=$fn/FN_DIV # comment out to used default (64)
+  # $fn=$fn/FN_DIV # comment out to used default (64)
+  $fn=16 # comment out to used default (64)
 
   skip :output
 
@@ -165,13 +166,16 @@ class Keyboard < CrystalScad::Printed
       ).translate(loc.merge(z: -FF)).color('purple')
     end
 
-    # top connector screw holes
-    screw_d = 1.5
-    screw_h = 2
-    (mgr.rows.length+1).times do |row_number|
-      # negative 1 (-1) is to get topmost row of holes.
-      top_connector_hole_locations(mgr, row_number-1).each do |coords|
-        output -= cylinder(d: screw_d, h: screw_h+FF, fn: 12/FN_DIV).translate(coords.merge(z: Key::UNDERMOUNT_T-screw_h)).color('red')
+    if render_row
+      # top connector screw holes
+      # Render time cut in half if connector holes not rendered?
+      screw_d = 1.5
+      screw_h = 2
+      (mgr.rows.length+1).times do |row_number|
+        # negative 1 (-1) is to get topmost row of holes.
+        top_connector_hole_locations(mgr, row_number-1).each do |coords|
+          output -= cylinder(d: screw_d, h: screw_h+FF, fn: 12/FN_DIV).translate(coords.merge(z: Key::UNDERMOUNT_T-screw_h)).color('red')
+        end
       end
     end
 
