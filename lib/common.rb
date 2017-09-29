@@ -4,7 +4,6 @@ module Common
 
   # Cube that is rounded on the X and Y corners only
   def self.rounded_rectangle(x:, y:, z:, r: 1.0, fn: 16, options: {})
-    fn = fn/Keyboard::FN_DIV
     adj = options[:adj] || {}
     options = {
       tl: true,
@@ -78,7 +77,6 @@ module Common
 
   # Cube that is rounded on the X,Y, and Z corners.
   def self.rounded_cube(x:, y:, z:, r: 1.0, fn: 16, options: {})
-    fn = fn/Keyboard::FN_DIV
     options = {
       tll: true,
       tlu: true,

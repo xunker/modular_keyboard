@@ -42,7 +42,11 @@ class BottomPlate < CrystalScad::Printed
     output = nil
     FOOT_SCREW_ROWS.times do |row|
       [1,-1].each do | sign|
-        output += cylinder(d: FOOT_SCREW_D, h: thickness+(FF*2), fn: 12).translate(x: (FOOT_SCREW_X_SPACING/2)*sign, y: row*FOOT_SCREW_Y_SPACING, z:-FF)
+        output += cylinder(
+          d: FOOT_SCREW_D,
+          h: thickness+(FF*2),
+          fn: 12
+        ).translate(x: (FOOT_SCREW_X_SPACING/2)*sign, y: row*FOOT_SCREW_Y_SPACING, z:-FF)
       end
     end
     output
@@ -50,7 +54,12 @@ class BottomPlate < CrystalScad::Printed
 
   def bottom_plate(mgr, screw_d: SCREW_D, screw_d_slop: SCREW_D_SLOP, thickness: @thickness)
     def plate_section(key, thickness)
-      Common.rounded_rectangle(x: key.width(as: :mm), y: key.height(as: :mm), z: thickness, options: Key.key_rounded_corner_options(key))
+      Common.rounded_rectangle(
+        x: key.width(as: :mm),
+        y: key.height(as: :mm),
+        z: thickness,
+        options: Key.key_rounded_corner_options(key)
+      )
     end
 
     plate = nil
@@ -62,8 +71,8 @@ class BottomPlate < CrystalScad::Printed
     end
 
     BottomPlate.bottom_plate_hole_locations(mgr).each do |loc|
-      screw_hole = cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2))
-      screw_hole += cylinder(d: SCREW_COUNTERSINK_D, h: thickness+(FF*2)).translate(z: -THICKNESS+SCREW_COUNTERSINK_H)
+      screw_hole = cylinder(d: screw_d+screw_d_slop, h: thickness+(FF*2), fn: 12)
+      screw_hole += cylinder(d: SCREW_COUNTERSINK_D, h: thickness+(FF*2), fn: 12).translate(z: -THICKNESS+SCREW_COUNTERSINK_H)
       plate -= screw_hole.translate(loc.merge(z: -FF)).color('purple')
     end
 
