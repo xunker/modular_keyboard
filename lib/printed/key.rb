@@ -4,6 +4,9 @@ class Key < CrystalScad::Printed
 
   UNDERMOUNT_T = 9.0
 
+  FN_DIV = Keyboard::FN_DIV # Divide all $fn values by this, to test effect on render times
+  $fn=$fn/FN_DIV # comment out to used default (64)
+
   attr_reader :key, :options
   skip [:output, :show, :show_hardware]
 
@@ -117,8 +120,8 @@ class Key < CrystalScad::Printed
       ).translate(v: [(space_width-@switch_cutout)/2, (@unit-@switch_cutout)/2, -FF]) -
 
       (
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
-        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7/FN_DIV).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, (@unit-@switch_cutout)/2, 0]) +
+        cylinder(d: under_pocket_d, h: under_pocket_l, fn: 7/FN_DIV).rotate(x: 0, y: 90, z: 0).translate(v: [(space_width-under_pocket_l)/2, ((@unit-@switch_cutout)/2)+@switch_cutout, 0])
       ).translate(v: [0,0,@undermount_t]).translate(v: [0,0,(-under_pocket_d/2)-@plate_mount_t])
     )
 

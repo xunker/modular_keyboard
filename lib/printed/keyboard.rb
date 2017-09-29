@@ -15,6 +15,11 @@ class Keyboard < CrystalScad::Printed
   # FILENAME = './leopold_fc660m.json'
   # FILENAME = './stabilizer_test.json'
 
+  FN_DIV = 1 # Divide all $fn values by this, to test effect on render times
+  # 1 = 6:34 to render
+  # 1.5 = 4:12 to render
+  # 4 = 3:25 to render
+  $fn=$fn/FN_DIV # comment out to used default (64)
 
   skip :output
 
@@ -166,7 +171,7 @@ class Keyboard < CrystalScad::Printed
     (mgr.rows.length+1).times do |row_number|
       # negative 1 (-1) is to get topmost row of holes.
       top_connector_hole_locations(mgr, row_number-1).each do |coords|
-        output -= cylinder(d: screw_d, h: screw_h+FF, fn: 12).translate(coords.merge(z: Key::UNDERMOUNT_T-screw_h)).color('red')
+        output -= cylinder(d: screw_d, h: screw_h+FF, fn: 12/FN_DIV).translate(coords.merge(z: Key::UNDERMOUNT_T-screw_h)).color('red')
       end
     end
 
@@ -243,7 +248,7 @@ class Keyboard < CrystalScad::Printed
 
     # screw holes
     top_connector_hole_locations(mgr, row).each do |coords|
-      output -= cylinder(d: screw_d, h: connector_t+(FF*2), fn: 12).translate(coords.merge(z: -FF)).color('red')
+      output -= cylinder(d: screw_d, h: connector_t+(FF*2), fn: 12/FN_DIV).translate(coords.merge(z: -FF)).color('red')
     end
 
     output
