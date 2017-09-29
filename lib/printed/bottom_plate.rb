@@ -21,9 +21,6 @@ class BottomPlate < CrystalScad::Printed
   FOOT_SCREW_Y_SPACING = 5
   FOOT_SCREW_ROWS = 3
 
-  FOOT_SCREW_X_OFFSET = 15
-  FOOT_SCREW_Y_OFFSET = 3
-
   skip :output
 
 	def initialize(thickness: THICKNESS)
@@ -93,7 +90,7 @@ class BottomPlate < CrystalScad::Printed
     ].each do |x_pos|
       plate -= foot_screw_hole_pair.translate(
         x: x_pos,
-        y: mgr.rows.first.keys.first.y_edge_position(:bottom)+FOOT_SCREW_Y_OFFSET
+        y: mgr.rows.first.keys.first.y_edge_position(:bottom)
       )
     end
 
