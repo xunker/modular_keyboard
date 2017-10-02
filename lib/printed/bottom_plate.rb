@@ -3,17 +3,17 @@ class BottomPlate < CrystalScad::Printed
   attr_reader :thickness
   FF = 0.1
 
-  THICKNESS = 1.2 # should be even multiple of layer height
+  THICKNESS = 1.5 # should be even multiple of layer height
 
   SCREW_D = 1.4
-  SCREW_COUNTERSINK_H = THICKNESS/1.5
+  SCREW_COUNTERSINK_H = THICKNESS/1.25
   SCREW_COUNTERSINK_D = SCREW_D*2
   SCREW_D_SLOP = 0.08 # make screw holes on plate this much larger to account for "squish"
   SCREW_H = 3
 
 
   TAPER = true # do you want to taper the bottom edge? Allowed for thicker/more rigid plate elsewhere.
-  TAPER_THICKNESS = 0.4 # should be even multiple of layer height
+  TAPER_THICKNESS = 0.6 # should be even multiple of layer height
   TAPER_ANGLE = 2 # degrees, smaller means taper is spread along more of plate
 
   FOOT_SCREW_D = 3

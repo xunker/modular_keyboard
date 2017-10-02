@@ -4,8 +4,8 @@ class Keyboard < CrystalScad::Printed
   FF = 0.1
   SWITCH_CUTOUT = 14 # cherry mx
 
-  # FILENAME = './recycler_right.json'
-  FILENAME = './recycler_left.json'
+  FILENAME = './recycler_right.json'
+  # FILENAME = './recycler_left.json'
   # FILENAME = './recycler_left_2.json'
   # FILENAME = './recycler.json'
   # FILENAME = './104_ansi.json'

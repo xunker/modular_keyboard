@@ -3,9 +3,9 @@ class Foot < CrystalScad::Printed
   attr_reader :thickness
   FF = 0.1
 
-  ATTACHMENT_THICKNESS = 1
+  ATTACHMENT_THICKNESS = 1.2
   LEG_TICKNESS = 3
-  LEG_LENGTH = 5
+  LEG_LENGTH = 10
   FOOT_D = 9
 
   ATT_WIDTH = (BottomPlate::FOOT_SCREW_X_SPACING + (BottomPlate::FOOT_SCREW_D*2)) * 1.0
@@ -17,7 +17,7 @@ class Foot < CrystalScad::Printed
   end
 
   def part(show)
-    attachment + leg.translate(x: LEG_LENGTH, y: -FOOT_D)
+    attachment + leg.translate(x: (ATT_WIDTH-LEG_LENGTH)/2, y: -FOOT_D)
   end
 
   def screw_channels
@@ -77,7 +77,7 @@ class Foot < CrystalScad::Printed
     tab.rotate(y: 90).translate(z: BottomPlate::FOOT_SCREW_D)
 
     output += tab.translate(
-      x: (ATT_WIDTH/2)-(ATTACHMENT_THICKNESS/1.5),
+      x: (ATT_WIDTH/2)-(LEG_TICKNESS/1),
       y: ATT_LENGTH/2,
       z: ATTACHMENT_THICKNESS
     )
