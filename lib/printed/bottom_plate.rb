@@ -6,7 +6,7 @@ class BottomPlate < CrystalScad::Printed
   THICKNESS = 1.5 # should be even multiple of layer height
 
   SCREW_D = 1.4
-  SCREW_COUNTERSINK_H = THICKNESS/1.25
+  SCREW_COUNTERSINK_H = THICKNESS/1.5
   SCREW_COUNTERSINK_D = SCREW_D*2
   SCREW_D_SLOP = 0.08 # make screw holes on plate this much larger to account for "squish"
   SCREW_H = 3
